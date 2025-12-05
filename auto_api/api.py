@@ -49,4 +49,5 @@ def stop():
 
 if __name__ == "__main__":
     # 🔥 중요: 모듈 경로는 "api.api:app" 이 맞아야 함
-    uvicorn.run("api.api:app", host="0.0.0.0", port=5000, reload=True)
+    uvicorn.run("api:app", host="0.0.0.0", port=5000, reload=True)
+
