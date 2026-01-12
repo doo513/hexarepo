@@ -1,25 +1,6 @@
 {
-  "next_instance_id": 12,
+  "next_instance_id": 1,
   "instances": {
-    "1": {
-      "problem": "pwn1",
-      "container": "pwn1_1",
-      "port": 33616
-    },
-    "2": {
-      "problem": "pwn1",
-      "container": "pwn1_2",
-      "port": 33578
-    },
-    "5": {
-      "problem": "pwn1",
-      "container": "pwn1_5",
-      "port": 35744
-    },
-    "6": {
-      "problem": "pwn1",
-      "container": "pwn1_6",
-      "port": 35208
-    }
+    
   }
 }
