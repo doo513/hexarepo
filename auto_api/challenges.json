@@ -1,0 +1,9 @@
+{
+  "pwn1": {
+    "challenge_id": "pwn-01-basic",
+    "title": "기초 버퍼 오버플로우",
+    "dir": "/home/hexa/hexactf/pwn1",
+    "category": "pwn",
+    "score": 100
+  }
+}

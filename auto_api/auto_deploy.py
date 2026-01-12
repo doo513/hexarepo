@@ -23,16 +23,16 @@ def get_internal_port(dockerfile_path):
     m = re.search(r"EXPOSE\s+(\d+)", content)
     return int(m.group(1)) if m else 5000
 
-def deploy(problem_dir):
-    problem_dir = os.path.abspath(problem_dir)
+def deploy(problem_dir,instanceid):
+    problem_dir = os.path.abspath(problem_dir) # 문제 경로 
 
-    dockerfile_path = os.path.join(problem_dir, "Dockerfile")
+    dockerfile_path = os.path.join(problem_dir, "Dockerfile") # 경로 디렉토리 내 도커 파일 찾기
     if not os.path.exists(dockerfile_path):
         raise FileNotFoundError(f"Dockerfile not found in {problem_dir}")
 
     # 이미지 이름
     problem_name = os.path.basename(problem_dir)
-    image_name = f"ctf_{problem_name}".lower()
+    image_name = f"{problem_name}".lower()
 
     # EXPOSE 포트 읽기
     internal = get_internal_port(dockerfile_path)
@@ -43,7 +43,7 @@ def deploy(problem_dir):
     # 🔥 핵심: build context는 반드시 문제 폴더여야 한다!!
     subprocess.run(["docker", "build", "-t", image_name, problem_dir], check=True)
 
-    container_name = f"{image_name}_{external}"
+    container_name = f"{image_name}_{instanceid}"
 
     subprocess.run([
         "docker", "run", "-d",
@@ -56,9 +56,11 @@ def deploy(problem_dir):
         "container_name": container_name,
         "image_name": image_name,
         "external_port": external,
-        "internal_port": internal
+        "internal_port": internal,
+        "id" : instanceid
     }
 
-
+"""
 if __name__ == "__main__":
     print(deploy("/home/hexa/hexactf/pwn1"))
+"""
