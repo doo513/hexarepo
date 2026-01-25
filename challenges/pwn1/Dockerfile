@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 # 환경 변수
 ENV user hackerlogin
-ENV chall_port 5000
+ENV chall_port 5001
 
 # 패키지 업데이트 및 socat 설치
 RUN apt-get update && apt-get -y install socat

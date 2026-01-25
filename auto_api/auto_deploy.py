@@ -1,21 +1,13 @@
-import subprocess
+import os
 import random
 import re
-import os
 
-MIN_PORT = 30000
-MAX_PORT = 40000
+import docker
+from docker.errors import DockerException, APIError
 
-def find_free_port():
-    while True:
-        p = random.randint(MIN_PORT, MAX_PORT)
-        res = subprocess.run(
-            ["lsof", "-i", f":{p}"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        if res.returncode != 0:
-            return p
+MIN_HOST_PORT = 30000
+MAX_HOST_PORT = 40000
+MAX_PORT_TRIES = 30
 
 def get_internal_port(dockerfile_path):
     with open(dockerfile_path, encoding="utf-8") as f:
@@ -23,7 +15,7 @@ def get_internal_port(dockerfile_path):
     m = re.search(r"EXPOSE\s+(\d+)", content)
     return int(m.group(1)) if m else 5000
 
-def deploy(problem_dir,instanceid):
+def deploy(problem_dir, instanceid, port=None):
     problem_dir = os.path.abspath(problem_dir) # 문제 경로 
 
     dockerfile_path = os.path.join(problem_dir, "Dockerfile") # 경로 디렉토리 내 도커 파일 찾기
@@ -34,31 +26,61 @@ def deploy(problem_dir,instanceid):
     problem_name = os.path.basename(problem_dir)
     image_name = f"{problem_name}".lower()
 
-    # EXPOSE 포트 읽기
-    internal = get_internal_port(dockerfile_path)
+    # 포트는 challenges.json 값(컨테이너 내부 포트) 우선, 없으면 Dockerfile EXPOSE 사용
+    if port is None:
+        internal = get_internal_port(dockerfile_path)
+    else:
+        internal = int(port)
 
-    # 외부 포트 찾기
-    external = find_free_port()
+    try:
+        client = docker.from_env()
 
-    # 🔥 핵심: build context는 반드시 문제 폴더여야 한다!!
-    subprocess.run(["docker", "build", "-t", image_name, problem_dir], check=True)
+        # 🔥 핵심: build context는 반드시 문제 폴더여야 한다!!
+        client.images.build(path=problem_dir, tag=image_name, rm=True)
 
-    container_name = f"{image_name}_{instanceid}"
+        container_name = f"{image_name}_{instanceid}"
 
-    subprocess.run([
-        "docker", "run", "-d",
-        "-p", f"{external}:{internal}",
-        "--name", container_name,
-        image_name
-    ], check=True)
+        container = None
+        host_port = None
+        last_error = None
+        for _ in range(MAX_PORT_TRIES):
+            host_port = random.randint(MIN_HOST_PORT, MAX_HOST_PORT)
+            try:
+                container = client.containers.run(
+                    image=image_name,
+                    detach=True,
+                    name=container_name,
+                    ports={f"{internal}/tcp": host_port},
+                )
+                break
+            except APIError as e:
+                last_error = e
+                msg = str(e).lower()
+                # 포트 충돌일 때만 재시도
+                if "port is already allocated" in msg or "address already in use" in msg or "bind" in msg:
+                    continue
+                raise
 
-    return {
-        "container_name": container_name,
-        "image_name": image_name,
-        "external_port": external,
-        "internal_port": internal,
-        "id" : instanceid
-    }
+        if not container:
+            raise RuntimeError(f"Failed to allocate host port after {MAX_PORT_TRIES} tries: {last_error}")
+        # 포트 할당 정보는 즉시 반영되지 않을 수 있어 reload 필요
+        container.reload()
+
+        ports = container.attrs.get("NetworkSettings", {}).get("Ports", {})
+        binding = (ports.get(f"{internal}/tcp") or [])
+        if not binding:
+            raise RuntimeError("Host port not assigned for container")
+        external = int(binding[0].get("HostPort") or host_port)
+
+        return {
+            "container_name": container_name,
+            "image_name": image_name,
+            "external_port": external,
+            "internal_port": internal,
+            "id" : instanceid
+        }
+    except (DockerException, APIError) as e:
+        raise RuntimeError(f"Docker SDK error: {e}") from e
 
 """
 if __name__ == "__main__":

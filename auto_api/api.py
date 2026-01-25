@@ -1,92 +1,118 @@
-# api/api.py
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
-import uvicorn
-import json
-import auto_deploy
-import auto_stop
-import os
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+import json, os
+
+from . import auto_deploy
+from . import auto_stop
+
+class StartRequest(BaseModel):
+    problem: str
 
 app = FastAPI()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(BASE_DIR)
+STATIC_DIR = os.path.join(ROOT_DIR, "static")
+STATE_FILE = os.path.join(ROOT_DIR, "instances.json")
+CHALLENGE_FILE = os.path.join(ROOT_DIR, "challenges.json")
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    index_path = os.path.join(BASE_DIR, "index.html")
-    with open(index_path, encoding="utf-8") as f:
+    with open(os.path.join(STATIC_DIR, "index.html"), encoding="utf-8") as f:
         return f.read()
-
-# instance_id 값을 생성
-
-STATE_FILE = "instances.json"
+    
 def load_state():
-    with open(STATE_FILE, "r") as f: 
+    if not os.path.exists(STATE_FILE):
+        return {"next_instance_id": 1, "instances": {}}
+    with open(STATE_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def save_state(state):
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=2)
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(state, f, indent=2, ensure_ascii=False)
+
+def load_challenges():
+    with open(CHALLENGE_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 def allocate_instance_id(state):
-    instance_id = state["next_instance_id"] 
+    instance_id = state["next_instance_id"]
     state["next_instance_id"] += 1
     return instance_id
 
-# 🔥 문제 경로를 body로 받도록 수정 (확장 가능)
-@app.post("/start")
-def start(problem: str = "pwn1"):
+@app.get("/api/challenges")
+def list_challenges():
     try:
-        problem_dir = f"/home/hexa/hexactf/{problem}"
-        if not os.path.exists(problem_dir):
-            return {"status": "error", "error": "problem not found"}
+        return load_challenges()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="challenges.json not found")
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="challenges.json is invalid JSON")
+    
+@app.post("/start")
+def start(req: StartRequest):
+    problem_key = req.problem
 
-        state = load_state()
-        instance_id = allocate_instance_id(state)
+    state = load_state()
+    challenges = load_challenges()
 
-        result = auto_deploy.deploy(problem_dir, instance_id)
+    if problem_key not in challenges:
+        raise HTTPException(status_code=400, detail="Invalid problem key")
 
-        state["instances"][str(instance_id)] = {
-            "problem": problem,
-            "container": result["container_name"],
-            "port": result["external_port"]
-        }
-        save_state(state)
+    challenge = challenges[problem_key]
+    problem_dir = challenge["dir"]
+    port = challenge.get("port")
 
-        server_host = "http://192.168.0.163"
-        url = f"{server_host}:{result['external_port']}"
+    instance_id = allocate_instance_id(state)
 
-        return {
-            "status": "ok",
-            "instance_id": instance_id,
-            "url": url
-        }
+    try:
+        info = auto_deploy.deploy(problem_dir, instance_id, port=port)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid port in challenges.json")
 
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+    state["instances"][str(instance_id)] = {
+        "instance_id": instance_id,
+        "problem": problem_key,
+        "challenge_id": challenge.get("challenge_id", problem_key),
+        "title": challenge.get("title", problem_key),
+        "port": info["external_port"],
+        "container": info["container_name"],
+        "status": "running"
+    }
+    save_state(state)
 
+    server_host = "http://192.168.0.163"
+    url = f"{server_host}:{info['external_port']}"
 
+    return {
+        "status": "ok",
+        "instance_id": instance_id,
+        "problem": problem_key,
+        "title": challenge.get("title", problem_key),
+        "url": url
+    }
 @app.post("/stop/{instance_id}")
 def stop(instance_id: int):
-    try:
-        state = load_state()
-        info = state["instances"].get(str(instance_id))
+    state = load_state()
+    inst = state["instances"].get(str(instance_id))
 
-        if not info:
-            return {"status": "error", "error": "instance not found"}
+    if not inst:
+        raise HTTPException(status_code=404, detail="instance not found")
 
-        auto_stop.stop_container(info["container"])
+    container_name = inst.get("container")
+    if not container_name:
+        raise HTTPException(status_code=500, detail="container name missing in state")
 
-        del state["instances"][str(instance_id)]
-        save_state(state)
+    result = auto_stop.stop_container(container_name)
 
-        return {"status": "ok"}
+    if result["status"] != "ok":
+        raise HTTPException(status_code=500, detail=result.get("error", "stop failed"))
 
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+    del state["instances"][str(instance_id)]
+    save_state(state)
 
-
-if __name__ == "__main__":
-    # 🔥 중요: 모듈 경로는 "api.api:app" 이 맞아야 함
-    uvicorn.run("api:app", host="0.0.0.0", port=5000, reload=True)
-
+    return {"status": "ok", "instance_id": instance_id, "container": container_name}

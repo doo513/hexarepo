@@ -1,16 +1,16 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-import subprocess
+import docker
+from docker.errors import DockerException, NotFound, APIError
 
-def stop_container(container_name):
+def stop_container(container_name: str) -> dict:
+    if not container_name or not isinstance(container_name, str):
+        return {"status": "error", "error": "Invalid container name"}
 
-    subprocess.run(
-        ["docker", "rm", "-f", container_name],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
-
-    return {
-        "status": "ok",
-        "container": container_name
-    }
+    try:
+        client = docker.from_env()
+        container = client.containers.get(container_name)
+        container.remove(force=True)
+        return {"status": "ok", "container": container_name}
+    except NotFound:
+        return {"status": "error", "container": container_name, "error": "container not found"}
+    except (DockerException, APIError) as e:
+        return {"status": "error", "container": container_name, "error": str(e)}

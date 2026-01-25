@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HexaCTF</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="logo">HexaCTF</div>
+    <nav class="nav">
+      <a class="nav-link active" href="#">Challenges</a>
+      <a class="nav-link" href="#">Scoreboard</a>
+      <a class="nav-link" href="#">My Page</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div>
+        <h1>Challenges</h1>
+        <p>Hack. Learn. Capture the Flag.</p>
+      </div>
+      <div class="hero-right">
+        <div class="pill">
+          <span class="dot"></span>
+          <span id="apiStatus">API: checking...</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="filters" id="filters">
+        <button class="filter active" data-cat="all">All</button>
+        <button class="filter" data-cat="pwn">PWN</button>
+        <button class="filter" data-cat="web">WEB</button>
+        <button class="filter" data-cat="rev">REV</button>
+        <button class="filter" data-cat="crypto">CRYPTO</button>
+      </div>
+
+      <div class="search">
+        <input id="searchInput" type="text" placeholder="Search title / key..." />
+      </div>
+    </section>
+
+    <section class="grid" id="grid">
+      <!-- JS가 카드 렌더 -->
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Console</div>
+        <div class="panel-actions">
+          <button class="btn btn-ghost" id="clearLogBtn">Clear</button>
+        </div>
+      </div>
+      <pre id="log" class="log"></pre>
+    </section>
+  </main>
+
+  <footer class="footer">
+    HexaCTF © 2026
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

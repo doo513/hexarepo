@@ -1,0 +1,20 @@
+{
+  "pwn1": {
+    "challenge_id": "pwn-01-basic",
+    "title": "기초 버퍼 오버플로우",
+    "dir": "/home/hexa/hexactf/challenges/pwn1",
+    "category": "pwn",
+    "score": 100,
+    "port":5001,
+    "type": ""
+  },
+  "pwn2": {
+    "challenge_id": "BasicROP",
+    "title": "기초 ROP",
+    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/PW/Basic_ROP/public",
+    "category": "pwn",
+    "score": 100,
+    "port":10010,
+    "type": ""
+  }
+}
