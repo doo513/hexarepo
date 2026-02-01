@@ -220,6 +220,36 @@ a{ color:inherit; text-decoration:none; }
   gap: 8px;
   flex-wrap:wrap;
 }
+
+.downloads{
+  display:flex;
+  flex-direction:column;
+  gap: 6px;
+}
+.download-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap: 8px;
+}
+.download-link{
+  display:inline-flex;
+  align-items:center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--line);
+  background: rgba(255,255,255,0.02);
+  color: var(--muted);
+}
+.download-link:hover{
+  color: var(--text);
+  border-color: rgba(124,92,255,0.35);
+}
+.download-size{
+  font-size: 11px;
+  color: rgba(154,164,178,0.8);
+}
 .tag{
   font-size: 12px;
   padding: 6px 10px;

@@ -6,7 +6,10 @@
     "category": "pwn",
     "score": 100,
     "port":5001,
-    "type": ""
+    "type": "pwn",
+    "downloads": [
+      { "label": "prob", "path": "deploy/prob" }
+    ]
   },
   "pwn2": {
     "challenge_id": "BasicROP",
@@ -15,6 +18,11 @@
     "category": "pwn",
     "score": 100,
     "port":10010,
-    "type": ""
+    "type": "pwn",
+    "downloads": [
+      { "label": "prob", "path": "deploy/prob" },
+      { "label": "prob.c", "path": "deploy/prob.c" },
+      { "label": "libc.so.6", "path": "deploy/libc.so.6" }
+    ]
   }
 }
