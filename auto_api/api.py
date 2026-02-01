@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import json, os
@@ -39,6 +39,56 @@ def load_challenges():
     with open(CHALLENGE_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def normalize_downloads(challenge):
+    raw = challenge.get("downloads") or challenge.get("files") or []
+    if not isinstance(raw, list):
+        return []
+
+    normalized = []
+    for item in raw:
+        if isinstance(item, str):
+            rel_path = item
+            label = os.path.basename(rel_path)
+        elif isinstance(item, dict):
+            rel_path = item.get("path") or item.get("file")
+            label = item.get("label") or item.get("name")
+            if not label and rel_path:
+                label = os.path.basename(rel_path)
+        else:
+            continue
+
+        if not rel_path:
+            continue
+
+        normalized.append({"path": rel_path, "label": label or os.path.basename(rel_path)})
+    return normalized
+
+def safe_join(base_dir, rel_path):
+    base_abs = os.path.abspath(base_dir)
+    target = os.path.abspath(os.path.join(base_abs, rel_path))
+    if os.path.commonpath([base_abs, target]) != base_abs:
+        return None
+    return target
+
+def build_download_entries(problem_key, challenge):
+    base_dir = challenge.get("dir")
+    if not base_dir:
+        return []
+
+    entries = []
+    normalized = normalize_downloads(challenge)
+    for idx, item in enumerate(normalized):
+        abs_path = safe_join(base_dir, item["path"])
+        if not abs_path or not os.path.isfile(abs_path):
+            continue
+        size = os.path.getsize(abs_path)
+        entries.append({
+            "label": item["label"],
+            "url": f"/api/download/{problem_key}/{idx}",
+            "size": size
+        })
+    return entries
+
 def allocate_instance_id(state):
     instance_id = state["next_instance_id"]
     state["next_instance_id"] += 1
@@ -47,7 +97,13 @@ def allocate_instance_id(state):
 @app.get("/api/challenges")
 def list_challenges():
     try:
-        return load_challenges()
+        challenges = load_challenges()
+        out = {}
+        for key, challenge in challenges.items():
+            ch = dict(challenge)
+            ch["downloads"] = build_download_entries(key, challenge)
+            out[key] = ch
+        return out
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="challenges.json not found")
     except json.JSONDecodeError:
@@ -95,6 +151,29 @@ def start(req: StartRequest):
         "title": challenge.get("title", problem_key),
         "url": url
     }
+
+@app.get("/api/download/{problem_key}/{file_index}")
+def download(problem_key: str, file_index: int):
+    challenges = load_challenges()
+    challenge = challenges.get(problem_key)
+    if not challenge:
+        raise HTTPException(status_code=404, detail="challenge not found")
+
+    normalized = normalize_downloads(challenge)
+    if file_index < 0 or file_index >= len(normalized):
+        raise HTTPException(status_code=404, detail="file not found")
+
+    base_dir = challenge.get("dir")
+    if not base_dir:
+        raise HTTPException(status_code=404, detail="challenge dir not found")
+
+    item = normalized[file_index]
+    abs_path = safe_join(base_dir, item["path"])
+    if not abs_path or not os.path.isfile(abs_path):
+        raise HTTPException(status_code=404, detail="file not found")
+
+    return FileResponse(abs_path, filename=item["label"], media_type="application/octet-stream")
+
 @app.post("/stop/{instance_id}")
 def stop(instance_id: int):
     state = load_state()
