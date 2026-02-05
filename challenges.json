@@ -2,7 +2,7 @@
   "pwn1": {
     "challenge_id": "pwn-01-basic",
     "title": "기초 버퍼 오버플로우",
-    "dir": "/home/hexa/hexactf/challenges/pwn1",
+    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/PW/pwn1",
     "category": "pwn",
     "score": 100,
     "port":5001,
@@ -27,7 +27,7 @@
   },
   "pwn3": {
     "challenge_id": "BaseballGame",
-    "title": "baseball",
+    "title": "baseball_game",
     "dir": "/home/hexa/hexactf/HexaCTF_Challenges/PW/baseball_game/public",
     "category": "pwn",
     "score": 150,

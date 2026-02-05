@@ -149,7 +149,11 @@
 
   async function logout() {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: csrf ? { "X-CSRF-Token": csrf } : {}
+      });
     } catch {
       // ignore network errors
     }
@@ -206,8 +210,7 @@
 
   if (dom.logoutBtn) {
     dom.logoutBtn.addEventListener("click", () => {
-      clearAuth();
-      setAuthTab("login");
+      Promise.resolve(logout()).finally(() => setAuthTab("login"));
     });
   }
 

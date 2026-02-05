@@ -80,9 +80,10 @@
 
   async function updateSettings(payload) {
     const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
+    const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
     const res = await fetch("/api/admin/settings", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...headers },
+      headers: { "Content-Type": "application/json", ...(csrf ? { "X-CSRF-Token": csrf } : {}), ...headers },
       body: JSON.stringify(payload)
     });
     const data = await safeJson(res);
@@ -140,9 +141,10 @@
 
   async function updateRole(username, role) {
     const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
+    const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
     const res = await fetch(`/api/admin/users/${encodeURIComponent(username)}/role`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...headers },
+      headers: { "Content-Type": "application/json", ...(csrf ? { "X-CSRF-Token": csrf } : {}), ...headers },
       body: JSON.stringify({ role })
     });
     const data = await safeJson(res);
@@ -154,9 +156,10 @@
 
   async function deleteUser(username) {
     const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
+    const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
     const res = await fetch(`/api/admin/users/${encodeURIComponent(username)}`, {
       method: "DELETE",
-      headers
+      headers: { ...(csrf ? { "X-CSRF-Token": csrf } : {}), ...headers }
     });
     const data = await safeJson(res);
     if (!res.ok || data.status !== "ok") {
@@ -166,9 +169,10 @@
 
   async function resetScoreboard() {
     const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
+    const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
     const res = await fetch("/api/admin/scoreboard/reset", {
       method: "POST",
-      headers
+      headers: { ...(csrf ? { "X-CSRF-Token": csrf } : {}), ...headers }
     });
     const data = await safeJson(res);
     if (!res.ok || data.status !== "ok") {

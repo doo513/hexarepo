@@ -1,27 +1,4 @@
 {
-  "next_instance_id": 14,
-  "instances": {
-    "8": {
-      "instance_id": 8,
-      "problem": "pwn1",
-      "challenge_id": "pwn-01-basic",
-      "title": "기초 버퍼 오버플로우",
-      "port": 31395,
-      "container": "pwn1_8",
-      "status": "error",
-      "owner": "test",
-      "error": "container not found"
-    },
-    "9": {
-      "instance_id": 9,
-      "problem": "pwn3",
-      "challenge_id": "BaseballGame",
-      "title": "baseball",
-      "port": 37288,
-      "container": "public_9",
-      "status": "error",
-      "owner": "test",
-      "error": "container not found"
-    }
-  }
+  "next_instance_id": 13,
+  "instances": {}
 }

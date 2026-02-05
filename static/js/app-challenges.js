@@ -202,14 +202,19 @@
     }
   }
 
-  async function startInstance(problemKey) {
-    log(`Start 요청: ${problemKey}`);
+	  async function startInstance(problemKey) {
+	    log(`Start 요청: ${problemKey}`);
+	    const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
 
-    const res = await fetch("/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {}) },
-      body: JSON.stringify({ problem: problemKey })
-    });
+	    const res = await fetch("/start", {
+	      method: "POST",
+	      headers: {
+	        "Content-Type": "application/json",
+	        ...(csrf ? { "X-CSRF-Token": csrf } : {}),
+	        ...(window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {})
+	      },
+	      body: JSON.stringify({ problem: problemKey })
+	    });
 
     const data = await safeJson(res);
 
@@ -227,16 +232,20 @@
     render();
   }
 
-  async function stopInstance(problemKey) {
-    const instance = state.runningMap.get(problemKey);
-    if (!instance) return;
+	  async function stopInstance(problemKey) {
+	    const instance = state.runningMap.get(problemKey);
+	    if (!instance) return;
 
-    log(`Stop 요청: ${problemKey} (instance_id=${instance.instance_id})`);
+	    log(`Stop 요청: ${problemKey} (instance_id=${instance.instance_id})`);
+	    const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
 
-    const res = await fetch(`/stop/${instance.instance_id}`, {
-      method: "POST",
-      headers: { ...(window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {}) }
-    });
+	    const res = await fetch(`/stop/${instance.instance_id}`, {
+	      method: "POST",
+	      headers: {
+	        ...(csrf ? { "X-CSRF-Token": csrf } : {}),
+	        ...(window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {})
+	      }
+	    });
 
     const data = await safeJson(res);
 

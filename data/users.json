@@ -17,6 +17,15 @@
       "score": 0,
       "solved_problems": [],
       "created_at": "2026-02-05T04:51:36Z"
+    },
+    "woong": {
+      "username": "woong",
+      "display_name": "tlrksdjatn!",
+      "role": "user",
+      "password_hash": "pbkdf2_sha256$200000$4f742ccba14a65eab98dfa44c1ac0aef$59b5d525851c4464c93b994af2c56ac99862cfcdadd4d5548b0d05e7595723e1",
+      "score": 0,
+      "solved_problems": [],
+      "created_at": "2026-02-05T05:42:52Z"
     }
   }
 }

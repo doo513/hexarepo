@@ -1,0 +1,4 @@
+"""
+Scoreboard domain package.
+"""
+

@@ -121,6 +121,21 @@
     return String(str).replaceAll('"', "%22");
   }
 
+  function getCookie(name) {
+    const target = `${name}=`;
+    const parts = String(document.cookie || "").split(/;\s*/);
+    for (const part of parts) {
+      if (part.startsWith(target)) {
+        return decodeURIComponent(part.slice(target.length));
+      }
+    }
+    return "";
+  }
+
+  function getCsrfToken() {
+    return getCookie("hexactf_csrf");
+  }
+
   function parseHostPort(url) {
     try {
       const u = new URL(url);
@@ -165,6 +180,8 @@
     formatBytes,
     escapeHtml,
     escapeAttr,
+    getCookie,
+    getCsrfToken,
     parseHostPort,
     buildConnectHint
   });
