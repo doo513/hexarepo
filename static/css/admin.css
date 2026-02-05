@@ -1,0 +1,65 @@
+.admin-panel .panel-actions{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-setting{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.02);
+}
+
+.admin-input{
+  width: 84px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  outline: none;
+}
+.admin-table-wrap{
+  overflow:auto;
+}
+.admin-table{
+  width:100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.admin-table th,
+.admin-table td{
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align:left;
+}
+.admin-table th{
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.admin-table tbody tr:hover{
+  background: rgba(255,255,255,0.03);
+}
+.admin-actions{
+  display:flex;
+  gap: 8px;
+  flex-wrap:wrap;
+}
+.admin-empty{
+  text-align:center;
+  color: var(--muted);
+  padding: 20px 0;
+}
+.admin-message.error{
+  color: var(--danger);
+}
+.admin-message.ok{
+  color: var(--ok);
+}

@@ -1,0 +1,22 @@
+{
+  "users": {
+    "admin": {
+      "username": "admin",
+      "display_name": "Administrator",
+      "role": "admin",
+      "password_hash": "pbkdf2_sha256$200000$58ff18f84a9a8cafcd65548c88a08c6b$b0fe53a554a2eaa32395dd6dbe5e02fab2be56e1303c534d3bbc71182158aecb",
+      "score": 0,
+      "solved_problems": [],
+      "created_at": "2026-02-05T03:05:50Z"
+    },
+    "test": {
+      "username": "test",
+      "display_name": "123",
+      "role": "user",
+      "password_hash": "27e8674e37c558506c3f48fab03be090$24b49499e859c566af0ed7e000371e7348e6aa4d835121860a8a73a8bbb89ccc",
+      "score": 0,
+      "solved_problems": [],
+      "created_at": "2026-02-05T04:51:36Z"
+    }
+  }
+}

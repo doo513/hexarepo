@@ -17,6 +17,20 @@
     "dir": "/home/hexa/hexactf/HexaCTF_Challenges/PW/Basic_ROP/public",
     "category": "pwn",
     "score": 100,
+    "port":10011,
+    "type": "pwn",
+    "downloads": [
+      { "label": "prob", "path": "deploy/prob" },
+      { "label": "prob.c", "path": "deploy/prob.c" },
+      { "label": "libc.so.6", "path": "deploy/libc.so.6" }
+    ]
+  },
+  "pwn3": {
+    "challenge_id": "BaseballGame",
+    "title": "baseball",
+    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/PW/baseball_game/public",
+    "category": "pwn",
+    "score": 150,
     "port":10010,
     "type": "pwn",
     "downloads": [

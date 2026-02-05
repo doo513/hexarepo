@@ -11,22 +11,43 @@ const apiStatusEl = document.getElementById("apiStatus");
 const filtersEl = document.getElementById("filters");
 const searchInput = document.getElementById("searchInput");
 const clearLogBtn = document.getElementById("clearLogBtn");
+const navLinks = document.querySelectorAll(".nav-link");
+const pages = document.querySelectorAll(".page");
+const scoreboardBody = document.getElementById("scoreboardBody");
+const scoreboardStatusEl = document.getElementById("scoreboardStatus");
+const refreshScoreboardBtn = document.getElementById("refreshScoreboardBtn");
+const authTabs = document.querySelectorAll(".auth-tab");
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+const authMessageEl = document.getElementById("authMessage");
+const authUserPanel = document.getElementById("authUserPanel");
+const authUserNameEl = document.getElementById("authUserName");
+const authUserRoleEl = document.getElementById("authUserRole");
+const logoutBtn = document.getElementById("logoutBtn");
+const currentUserEl = document.getElementById("currentUser");
 
 let allChallenges = [];
 let activeCat = "all";
 let activeQuery = "";
+let activeAuthTab = "login";
+let authState = { token: null, user: null };
 
 // key -> { instance_id, url }
 const runningMap = new Map();
 
 function log(line) {
   const ts = new Date().toLocaleTimeString();
+  if (!logEl) {
+    console.log(`[${ts}] ${line}`);
+    return;
+  }
   logEl.textContent += `[${ts}] ${line}\n`;
   logEl.scrollTop = logEl.scrollHeight;
 }
 
 function setApiStatus(ok) {
   const dot = document.querySelector(".dot");
+  if (!dot || !apiStatusEl) return;
   if (ok) {
     dot.style.background = "var(--ok)";
     dot.style.boxShadow = "0 0 0 4px rgba(46,229,157,0.12)";
@@ -38,6 +59,98 @@ function setApiStatus(ok) {
   }
 }
 
+function setScoreboardStatus(ok, detail) {
+  if (!scoreboardStatusEl) return;
+  if (ok) {
+    scoreboardStatusEl.textContent = detail ? `API: online (${detail})` : "API: online";
+  } else {
+    scoreboardStatusEl.textContent = detail ? `API: offline (${detail})` : "API: offline (fallback data)";
+  }
+}
+
+function setAuthMessage(message, type) {
+  if (!authMessageEl) return;
+  authMessageEl.textContent = message || "";
+  authMessageEl.classList.remove("error", "ok");
+  if (type) authMessageEl.classList.add(type);
+}
+
+function saveAuth(user, token) {
+  authState = { user, token };
+  localStorage.setItem("hexactf_token", token);
+  localStorage.setItem("hexactf_user", JSON.stringify(user));
+  renderAuthState();
+}
+
+function clearAuth() {
+  authState = { user: null, token: null };
+  localStorage.removeItem("hexactf_token");
+  localStorage.removeItem("hexactf_user");
+  renderAuthState();
+}
+
+function loadAuth() {
+  const token = localStorage.getItem("hexactf_token");
+  const userRaw = localStorage.getItem("hexactf_user");
+  if (!token || !userRaw) {
+    renderAuthState();
+    return;
+  }
+
+  try {
+    const user = JSON.parse(userRaw);
+    authState = { token, user };
+  } catch {
+    clearAuth();
+    return;
+  }
+  renderAuthState();
+}
+
+function authHeaders() {
+  if (!authState.token) return {};
+  return { Authorization: `Bearer ${authState.token}` };
+}
+
+function renderAuthState() {
+  const isAuthed = !!authState.token && !!authState.user;
+  if (currentUserEl) {
+    currentUserEl.textContent = isAuthed
+      ? (authState.user.display_name || authState.user.username || "User")
+      : "Guest";
+  }
+
+  if (authUserPanel) {
+    authUserPanel.classList.toggle("hidden", !isAuthed);
+  }
+  if (loginForm) {
+    loginForm.classList.toggle("active", !isAuthed && activeAuthTab === "login");
+  }
+  if (registerForm) {
+    registerForm.classList.toggle("active", !isAuthed && activeAuthTab === "register");
+  }
+
+  if (authUserNameEl) {
+    authUserNameEl.textContent = isAuthed
+      ? (authState.user.display_name || authState.user.username || "User")
+      : "-";
+  }
+  if (authUserRoleEl) {
+    authUserRoleEl.textContent = isAuthed ? (authState.user.role || "user") : "user";
+  }
+  if (!isAuthed) {
+    setAuthMessage("", "");
+  }
+}
+
+function setAuthTab(tab) {
+  activeAuthTab = tab;
+  authTabs.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.auth === tab);
+  });
+  renderAuthState();
+}
+
 async function safeJson(res) {
   const text = await res.text();
   // 디버깅에 매우 유용
@@ -47,6 +160,16 @@ async function safeJson(res) {
     return JSON.parse(text);
   } catch (e) {
     throw new Error("응답이 JSON이 아닙니다 (서버 에러/404 가능).");
+  }
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
   }
 }
 
@@ -78,7 +201,7 @@ async function loadChallenges() {
   ];
 
   try {
-    const res = await fetch("/api/challenges");
+    const res = await fetchWithTimeout("/api/challenges", {}, 5000);
     if (!res.ok) throw new Error(`GET /api/challenges failed: ${res.status}`);
     const data = await res.json();
 
@@ -105,8 +228,26 @@ async function loadChallenges() {
     return arr;
   } catch (e) {
     setApiStatus(false);
-    log(`API load failed -> fallback 사용: ${e.message}`);
+    const reason = e.name === "AbortError" ? "timeout" : e.message;
+    log(`API load failed -> fallback 사용: ${reason}`);
     return fallback;
+  }
+}
+
+function setNavActive(page) {
+  navLinks.forEach(link => {
+    link.classList.toggle("active", link.dataset.page === page);
+  });
+  pages.forEach(section => {
+    section.classList.toggle("active", section.dataset.page === page);
+  });
+}
+
+function showPage(page) {
+  if (!page) return;
+  setNavActive(page);
+  if (page === "scoreboard") {
+    refreshScoreboard();
   }
 }
 
@@ -280,6 +421,7 @@ function escapeAttr(str) {
 }
 
 function render() {
+  if (!grid) return;
   const filtered = allChallenges.filter(ch => {
     const cat = normalizeCat(ch.type ?? ch.category);
     const okCat = (activeCat === "all") ? true : (cat === activeCat);
@@ -293,12 +435,123 @@ function render() {
   grid.innerHTML = filtered.map(cardHTML).join("");
 }
 
+function renderScoreboard(rows) {
+  if (!scoreboardBody) return;
+  if (!rows.length) {
+    scoreboardBody.innerHTML = `
+      <tr>
+        <td class="scoreboard-empty" colspan="4">No data</td>
+      </tr>
+    `;
+    return;
+  }
+
+  scoreboardBody.innerHTML = rows.map(row => {
+    const rank = Number(row.rank || 0);
+    const score = Number(row.score || 0);
+    const solved = Number(row.solved_count || 0);
+    const username = escapeHtml(String(row.username || "unknown"));
+    const display = escapeHtml(String(row.display_name || row.username || "Unknown"));
+    const userHtml = display !== username ? `${display} <span class="small">@${username}</span>` : display;
+
+    return `
+      <tr>
+        <td class="scoreboard-rank">#${rank}</td>
+        <td>${userHtml}</td>
+        <td>${score}</td>
+        <td>${solved}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+async function loadScoreboard() {
+  const fallback = [
+    { rank: 1, username: "guest01", display_name: "Guest 01", score: 250, solved_count: 5 },
+    { rank: 2, username: "guest02", display_name: "Guest 02", score: 180, solved_count: 4 },
+    { rank: 3, username: "guest03", display_name: "Guest 03", score: 120, solved_count: 3 }
+  ];
+
+  try {
+    const res = await fetchWithTimeout("/api/scoreboard", { headers: authHeaders() }, 5000);
+    if (!res.ok) throw new Error(`GET /api/scoreboard failed: ${res.status}`);
+    const data = await res.json();
+    const raw = Array.isArray(data) ? data : (Array.isArray(data.scoreboard) ? data.scoreboard : []);
+
+    const rows = raw.map((item, idx) => ({
+      rank: Number(item.rank) || 0,
+      username: item.username ?? item.user ?? `user${idx + 1}`,
+      display_name: item.display_name ?? item.name ?? item.username ?? `User ${idx + 1}`,
+      score: Number(item.score ?? 0),
+      solved_count: Number(item.solved_count ?? item.solved ?? 0)
+    }));
+
+    rows.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return String(a.username).localeCompare(String(b.username));
+    });
+
+    rows.forEach((row, idx) => {
+      if (!row.rank) row.rank = idx + 1;
+    });
+
+    setScoreboardStatus(true, `Loaded ${rows.length}`);
+    log(`Loaded scoreboard: ${rows.length}`);
+    return rows;
+  } catch (e) {
+    const reason = e.name === "AbortError" ? "timeout" : e.message;
+    setScoreboardStatus(false, reason);
+    log(`Scoreboard load failed -> fallback 사용: ${reason}`);
+    return fallback;
+  }
+}
+
+async function refreshScoreboard() {
+  if (!scoreboardBody) return;
+  const rows = await loadScoreboard();
+  renderScoreboard(rows);
+}
+
+async function loginUser(username, password) {
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+
+  const data = await safeJson(res);
+  if (!res.ok || data.status !== "ok") {
+    throw new Error(data.detail || data.error || "Login failed");
+  }
+  saveAuth(data.user, data.access_token);
+  setAuthMessage("Login success", "ok");
+}
+
+async function registerUser(username, password, displayName) {
+  const res = await fetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      password,
+      display_name: displayName || null
+    })
+  });
+
+  const data = await safeJson(res);
+  if (!res.ok || data.status !== "ok") {
+    throw new Error(data.detail || data.error || "Register failed");
+  }
+  saveAuth(data.user, data.access_token);
+  setAuthMessage("Account created", "ok");
+}
+
 async function startInstance(problemKey) {
   log(`Start 요청: ${problemKey}`);
 
   const res = await fetch("/start", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ problem: problemKey })
   });
 
@@ -325,7 +578,10 @@ async function stopInstance(problemKey) {
   log(`Stop 요청: ${problemKey} (instance_id=${instance.instance_id})`);
 
   // 네 서버가 /stop/{id} 형태라고 가정 (이전 대화 흐름 기준)
-  const res = await fetch(`/stop/${instance.instance_id}`, { method: "POST" });
+  const res = await fetch(`/stop/${instance.instance_id}`, {
+    method: "POST",
+    headers: { ...authHeaders() }
+  });
 
   const data = await safeJson(res);
 
@@ -372,60 +628,140 @@ async function copyConnect(problemKey) {
 }
 
 // 이벤트 위임
-grid.addEventListener("click", async (e) => {
-  const btn = e.target.closest("button");
-  if (!btn) return;
+if (grid) {
+  grid.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
 
-  const card = e.target.closest(".card");
-  if (!card) return;
+    const card = e.target.closest(".card");
+    if (!card) return;
 
-  const key = card.dataset.key;
-  const action = btn.dataset.action;
+    const key = card.dataset.key;
+    const action = btn.dataset.action;
 
-  try {
-    if (action === "start") {
-      btn.disabled = true;
-      await startInstance(key);
-    } else if (action === "stop") {
-      btn.disabled = true;
-      await stopInstance(key);
-    } else if (action === "copy") {
-      await copyUrl(key);
-    } else if (action === "copy-connect") {
-      await copyConnect(key);
+    try {
+      if (action === "start") {
+        btn.disabled = true;
+        await startInstance(key);
+      } else if (action === "stop") {
+        btn.disabled = true;
+        await stopInstance(key);
+      } else if (action === "copy") {
+        await copyUrl(key);
+      } else if (action === "copy-connect") {
+        await copyConnect(key);
+      }
+    } catch (err) {
+      log(`ERROR: ${err.message}`);
+      console.error(err);
+    } finally {
+      render(); // 버튼 상태 갱신
     }
-  } catch (err) {
-    log(`ERROR: ${err.message}`);
-    console.error(err);
-  } finally {
-    render(); // 버튼 상태 갱신
-  }
-});
+  });
+}
 
 // 필터
-filtersEl.addEventListener("click", (e) => {
-  const b = e.target.closest("button.filter");
-  if (!b) return;
+if (filtersEl) {
+  filtersEl.addEventListener("click", (e) => {
+    const b = e.target.closest("button.filter");
+    if (!b) return;
 
-  [...filtersEl.querySelectorAll(".filter")].forEach(x => x.classList.remove("active"));
-  b.classList.add("active");
+    [...filtersEl.querySelectorAll(".filter")].forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
 
-  activeCat = b.dataset.cat;
-  render();
-});
+    activeCat = b.dataset.cat;
+    render();
+  });
+}
 
 // 검색
-searchInput.addEventListener("input", (e) => {
-  activeQuery = e.target.value || "";
-  render();
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    activeQuery = e.target.value || "";
+    render();
+  });
+}
+
+if (clearLogBtn) {
+  clearLogBtn.addEventListener("click", () => {
+    if (logEl) logEl.textContent = "";
+  });
+}
+
+(navLinks || []).forEach(link => {
+  link.addEventListener("click", (e) => {
+    const page = link.dataset.page;
+    if (!page) return;
+    e.preventDefault();
+    showPage(page);
+  });
 });
 
-clearLogBtn.addEventListener("click", () => {
-  logEl.textContent = "";
+if (refreshScoreboardBtn) {
+  refreshScoreboardBtn.addEventListener("click", () => {
+    refreshScoreboard();
+  });
+}
+
+authTabs.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const tab = btn.dataset.auth;
+    if (!tab) return;
+    setAuthTab(tab);
+  });
 });
+
+if (loginForm) {
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(loginForm);
+    const username = String(fd.get("username") || "").trim();
+    const password = String(fd.get("password") || "").trim();
+    if (!username || !password) {
+      setAuthMessage("Username and password are required.", "error");
+      return;
+    }
+    try {
+      setAuthMessage("Logging in...", "");
+      await loginUser(username, password);
+    } catch (err) {
+      setAuthMessage(err.message || "Login failed", "error");
+    }
+  });
+}
+
+if (registerForm) {
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(registerForm);
+    const username = String(fd.get("username") || "").trim();
+    const password = String(fd.get("password") || "").trim();
+    const displayName = String(fd.get("display_name") || "").trim();
+    if (!username || !password) {
+      setAuthMessage("Username and password are required.", "error");
+      return;
+    }
+    try {
+      setAuthMessage("Creating account...", "");
+      await registerUser(username, password, displayName);
+      setAuthTab("login");
+    } catch (err) {
+      setAuthMessage(err.message || "Register failed", "error");
+    }
+  });
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    clearAuth();
+    setAuthTab("login");
+  });
+}
 
 (async function boot() {
   log("Front boot...");
+  loadAuth();
+  showPage("challenges");
   allChallenges = await loadChallenges();
   render();
 })();
