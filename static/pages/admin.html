@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HexaCTF - Admin</title>
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <link rel="stylesheet" href="/static/css/layout.css" />
+  <link rel="stylesheet" href="/static/css/components.css" />
+  <link rel="stylesheet" href="/static/css/admin.css" />
+</head>
+
+<body data-page="admin">
+  <header class="topbar">
+    <div class="logo">HexaCTF</div>
+    <nav class="nav">
+      <a class="nav-link" href="/challenges" data-page="challenges">Challenges</a>
+      <a class="nav-link" href="/scoreboard" data-page="scoreboard">Scoreboard</a>
+      <a class="nav-link admin-link active" href="/admin" data-page="admin">Admin</a>
+    </nav>
+    <div class="topbar-right">
+      <div class="user-pill" id="currentUser">Guest</div>
+      <button class="btn btn-ghost" id="logoutTopBtn" type="button">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div>
+        <h1>Admin</h1>
+        <p>Manage users and reset the scoreboard.</p>
+      </div>
+    </section>
+
+    <section class="panel admin-panel" id="adminPanel">
+      <div class="panel-header">
+        <div class="panel-title">Users</div>
+        <div class="panel-actions">
+          <div class="admin-setting">
+            <span class="small">User instance limit</span>
+            <input id="userInstanceLimitInput" class="admin-input" type="number" min="0" step="1" />
+            <button class="btn btn-ghost" id="saveUserInstanceLimitBtn" type="button">Save</button>
+          </div>
+          <span id="adminMessage" class="admin-message small"></span>
+          <button class="btn btn-ghost" id="refreshUsersBtn" type="button">Refresh Users</button>
+          <button class="btn btn-danger" id="resetScoreboardBtn" type="button">Reset Scoreboard</button>
+        </div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Score</th>
+              <th>Solved</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adminUserBody">
+            <tr>
+              <td class="admin-empty" colspan="5">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    HexaCTF © 2026
+  </footer>
+
+  <script src="/static/js/app-core.js"></script>
+  <script src="/static/js/app-auth.js"></script>
+  <script src="/static/js/app-admin.js"></script>
+  <script src="/static/js/app-router.js"></script>
+  <script src="/static/js/app-main.js"></script>
+</body>
+</html>

@@ -2,9 +2,6 @@ import os
 import random
 import re
 
-import docker
-from docker.errors import DockerException, APIError
-
 MIN_HOST_PORT = 30000
 MAX_HOST_PORT = 40000
 MAX_PORT_TRIES = 30
@@ -16,6 +13,12 @@ def get_internal_port(dockerfile_path):
     return int(m.group(1)) if m else 5000
 
 def deploy(problem_dir, instanceid, port=None):
+    try:
+        import docker
+        from docker.errors import DockerException, APIError
+    except ImportError as e:
+        raise RuntimeError("Docker SDK not installed. Run: pip install docker") from e
+
     problem_dir = os.path.abspath(problem_dir) # 문제 경로 
 
     dockerfile_path = os.path.join(problem_dir, "Dockerfile") # 경로 디렉토리 내 도커 파일 찾기

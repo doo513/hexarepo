@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HexaCTF - Scoreboard</title>
+  <link rel="stylesheet" href="/static/css/base.css" />
+  <link rel="stylesheet" href="/static/css/layout.css" />
+  <link rel="stylesheet" href="/static/css/components.css" />
+  <link rel="stylesheet" href="/static/css/scoreboard.css" />
+</head>
+
+<body data-page="scoreboard">
+  <header class="topbar">
+    <div class="logo">HexaCTF</div>
+    <nav class="nav">
+      <a class="nav-link" href="/challenges" data-page="challenges">Challenges</a>
+      <a class="nav-link active" href="/scoreboard" data-page="scoreboard">Scoreboard</a>
+      <a class="nav-link admin-link hidden" href="/admin" data-page="admin">Admin</a>
+    </nav>
+    <div class="topbar-right">
+      <div class="user-pill" id="currentUser">Guest</div>
+      <button class="btn btn-ghost" id="logoutTopBtn" type="button">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div>
+        <h1>Scoreboard</h1>
+        <p>Track progress and climb the ranks.</p>
+      </div>
+    </section>
+
+    <section class="panel scoreboard-panel">
+      <div class="panel-header">
+        <div class="panel-title">Top Players</div>
+        <div class="panel-actions">
+          <span id="scoreboardStatus" class="small">API: checking...</span>
+          <button class="btn btn-ghost" id="refreshScoreboardBtn">Refresh</button>
+        </div>
+      </div>
+      <div class="scoreboard-table-wrap">
+        <table class="scoreboard-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>User</th>
+              <th>Score</th>
+              <th>Solved</th>
+            </tr>
+          </thead>
+          <tbody id="scoreboardBody">
+            <tr>
+              <td class="scoreboard-empty" colspan="4">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    HexaCTF © 2026
+  </footer>
+
+  <script src="/static/js/app-core.js"></script>
+  <script src="/static/js/app-auth.js"></script>
+  <script src="/static/js/app-scoreboard.js"></script>
+  <script src="/static/js/app-router.js"></script>
+  <script src="/static/js/app-main.js"></script>
+</body>
+</html>
