@@ -4,37 +4,10 @@
       "username": "admin",
       "display_name": "Administrator",
       "role": "admin",
-      "password_hash": "pbkdf2_sha256$200000$58ff18f84a9a8cafcd65548c88a08c6b$b0fe53a554a2eaa32395dd6dbe5e02fab2be56e1303c534d3bbc71182158aecb",
+      "password_hash": "pbkdf2_sha256$200000$18a4f63ef2ece99a2237e291ba367ae5$f768d02bd01e031d359af0889dfe2802f34f48627dcf73b74eb090a60656408a",
       "score": 0,
       "solved_problems": [],
-      "created_at": "2026-02-05T03:05:50Z"
-    },
-    "woong": {
-      "username": "woong",
-      "display_name": "tlrksdjatn!",
-      "role": "user",
-      "password_hash": "pbkdf2_sha256$200000$4f742ccba14a65eab98dfa44c1ac0aef$59b5d525851c4464c93b994af2c56ac99862cfcdadd4d5548b0d05e7595723e1",
-      "score": 0,
-      "solved_problems": [],
-      "created_at": "2026-02-05T05:42:52Z"
-    },
-    "test": {
-      "username": "test",
-      "display_name": "test",
-      "role": "user",
-      "password_hash": "pbkdf2_sha256$200000$44c275d0d53165925d889395ffb68c48$0f1b1ca8c9db981145cea7f8408eee3d01e75a29632b9ec68c8a76d2fd975ac6",
-      "score": 0,
-      "solved_problems": [],
-      "created_at": "2026-02-06T01:25:24Z"
-    },
-    "123": {
-      "username": "123",
-      "display_name": "123",
-      "role": "user",
-      "password_hash": "pbkdf2_sha256$200000$9a49169dd6de8a6161a221250fedf107$fb66a054bc47d8f390f059e2a83e61e1fff9d74b020beef32d7c299f2d7dc9d6",
-      "score": 0,
-      "solved_problems": [],
-      "created_at": "2026-02-08T03:06:06Z"
+      "created_at": "2026-03-16T02:36:30Z"
     }
   }
 }

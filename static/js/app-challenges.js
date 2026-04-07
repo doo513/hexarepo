@@ -1,5 +1,5 @@
 (() => {
-  const { dom, state, log, safeJson, fetchWithTimeout, normalizeCat, formatBytes, escapeHtml, escapeAttr, buildConnectHint } = window.HEXACTF;
+  const { dom, state, log, safeJson, fetchWithTimeout, normalizeCat, formatBytes, escapeHtml, escapeAttr, buildConnectHint, normalizeInstanceUrl } = window.HEXACTF;
 
   function renderDownloads(ch) {
     const files = Array.isArray(ch.downloads) ? ch.downloads : [];
@@ -247,7 +247,7 @@
         if (inst.status === "error") return;
         state.runningMap.set(String(inst.problem), {
           instance_id: inst.instance_id,
-          url: inst.url
+          url: normalizeInstanceUrl ? normalizeInstanceUrl(inst.url) : inst.url
         });
       });
       return instances;
@@ -281,10 +281,11 @@
 
     state.runningMap.set(problemKey, {
       instance_id: data.instance_id,
-      url: data.url
+      url: normalizeInstanceUrl ? normalizeInstanceUrl(data.url) : data.url
     });
 
-    log(`Start OK: instance_id=${data.instance_id} url=${data.url}`);
+    const instance = state.runningMap.get(problemKey);
+    log(`Start OK: instance_id=${data.instance_id} url=${instance?.url || data.url}`);
     render();
   }
 

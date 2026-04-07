@@ -304,6 +304,29 @@ function parseHostPort(url) {
   }
 }
 
+function normalizeInstanceUrl(rawUrl) {
+  const value = String(rawUrl || "").trim();
+  if (!value) return value;
+
+  const currentHost = String(window.location.hostname || "").trim();
+  if (!currentHost) return value;
+
+  try {
+    const url = new URL(value);
+    const host = String(url.hostname || "").toLowerCase();
+    if (!["localhost", "127.0.0.1", "::1"].includes(host)) return value;
+    url.hostname = currentHost;
+    return url.toString();
+  } catch {
+    const withScheme = value.replace(
+      /^([a-z]+:\/\/)(localhost|127\.0\.0\.1|\[::1\]|::1)(?=[:/]|$)/i,
+      `$1${currentHost}`
+    );
+    if (withScheme !== value) return withScheme;
+    return value.replace(/^(localhost|127\.0\.0\.1|\[::1\]|::1)(?=[:/]|$)/i, currentHost);
+  }
+}
+
 function buildConnectHint(ch, instance) {
   if (!instance?.url) return "-";
   const cat = normalizeCat(ch.type ?? ch.category);
@@ -564,10 +587,11 @@ async function startInstance(problemKey) {
 
   runningMap.set(problemKey, {
     instance_id: data.instance_id,
-    url: data.url
+    url: normalizeInstanceUrl(data.url)
   });
 
-  log(`Start OK: instance_id=${data.instance_id} url=${data.url}`);
+  const instance = runningMap.get(problemKey);
+  log(`Start OK: instance_id=${data.instance_id} url=${instance?.url || data.url}`);
   render();
 }
 

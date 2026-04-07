@@ -122,6 +122,33 @@
     return getCookie("hexactf_csrf");
   }
 
+  function normalizeInstanceUrl(rawUrl) {
+    const value = String(rawUrl || "").trim();
+    if (!value) return value;
+
+    const currentHost = String(window.location.hostname || "").trim();
+    if (!currentHost) return value;
+
+    const isLoopback = host => {
+      const h = String(host || "").trim().replace(/^\[|\]$/g, "").toLowerCase();
+      return h === "localhost" || h === "127.0.0.1" || h === "::1";
+    };
+
+    try {
+      const url = new URL(value);
+      if (!isLoopback(url.hostname)) return value;
+      url.hostname = currentHost;
+      return url.toString();
+    } catch {
+      const withScheme = value.replace(
+        /^([a-z]+:\/\/)(localhost|127\.0\.0\.1|\[::1\]|::1)(?=[:/]|$)/i,
+        `$1${currentHost}`
+      );
+      if (withScheme !== value) return withScheme;
+      return value.replace(/^(localhost|127\.0\.0\.1|\[::1\]|::1)(?=[:/]|$)/i, currentHost);
+    }
+  }
+
   function parseHostPort(url) {
     try {
       const u = new URL(url);
@@ -167,6 +194,7 @@
     escapeAttr,
     getCookie,
     getCsrfToken,
+    normalizeInstanceUrl,
     parseHostPort,
     buildConnectHint
   });

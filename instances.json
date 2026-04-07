@@ -1,15 +1,18 @@
 {
-  "next_instance_id": 43,
+  "next_instance_id": 45,
   "instances": {
-    "30": {
-      "instance_id": 30,
-      "problem": "web_lfi",
-      "challenge_id": "Utilizing_LFI",
-      "title": "Utilizing LFI",
+    "44": {
+      "instance_id": 44,
+      "problem": "web_villa",
+      "challenge_id": "villa",
+      "title": "Villa",
       "status": "running",
       "owner": "admin",
-      "port": 38779,
-      "container": "user_30"
+      "created_at": "2026-03-27T01:38:39.685332+00:00",
+      "updated_at": "2026-03-27T01:38:40.289939+00:00",
+      "port": 38004,
+      "container": "hexactf-web_villa_44",
+      "url": "http://192.168.0.164:38004"
     }
   }
 }

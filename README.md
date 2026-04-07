@@ -10,7 +10,7 @@ HexaCTF is a lightweight CTF platform with a FastAPI backend and a static fronte
 - Storage hardening: file locks + atomic writes, PBKDF2 password hashing with legacy upgrade, persistent HMAC secret.
 
 **Layout**
-- `api/` FastAPI app, auth, instance management, settings.
+- `backend/` FastAPI app, auth, instance management, settings.
 - `static/` HTML/CSS/JS frontend (login, challenges, scoreboard, admin).
 - `challenges.json` challenge definitions.
 - `data/` runtime data (users, settings, secret).
@@ -19,7 +19,7 @@ HexaCTF is a lightweight CTF platform with a FastAPI backend and a static fronte
 
 **Run**
 1. Install deps: `pip install fastapi uvicorn pydantic docker`
-1. Start server: `uvicorn api.api:app --host 0.0.0.0 --port 8000 --reload`
+1. Start server: `uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload`
 1. Open `http://localhost:8000/`
 
 **Challenges**

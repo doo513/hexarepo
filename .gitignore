@@ -1,0 +1,26 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Runtime state
+*.lock
+data/secret.key
+data/users.json
+data/settings.json
+instances.json
+
+# Backups
+.recovery_backup_*/
+
+# OS noise
+.DS_Store
