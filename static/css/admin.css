@@ -1,65 +1,59 @@
-.admin-panel .panel-actions{
-  display:flex;
-  align-items:center;
+.admin-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-summary-card {
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: rgba(15, 25, 48, 0.88);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-summary-card strong {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-head);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+}
+
+.admin-setting {
+  display: inline-flex;
+  align-items: flex-end;
   gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(25, 37, 64, 0.82);
+}
+
+.admin-setting label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.admin-input {
+  width: 92px;
+  text-align: center;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.admin-setting{
-  display:flex;
-  align-items:center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.02);
-}
-
-.admin-input{
-  width: 84px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.03);
-  color: var(--text);
-  outline: none;
-}
-.admin-table-wrap{
-  overflow:auto;
-}
-.admin-table{
-  width:100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.admin-table th,
-.admin-table td{
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--line);
-  text-align:left;
-}
-.admin-table th{
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-.admin-table tbody tr:hover{
-  background: rgba(255,255,255,0.03);
-}
-.admin-actions{
-  display:flex;
-  gap: 8px;
-  flex-wrap:wrap;
-}
-.admin-empty{
-  text-align:center;
-  color: var(--muted);
-  padding: 20px 0;
-}
-.admin-message.error{
-  color: var(--danger);
-}
-.admin-message.ok{
-  color: var(--ok);
+@media (max-width: 1100px) {
+  .admin-summary {
+    grid-template-columns: 1fr;
+  }
 }

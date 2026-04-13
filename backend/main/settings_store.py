@@ -49,6 +49,14 @@ def load_settings_unlocked() -> dict:
         "user_instance_limit": DEFAULT_USER_INSTANCE_LIMIT,
         "role_instance_limits": {},
         "user_instance_limits": {},
+        "ranking_open": True,
+        "ranking_closed_message": "This page has been closed. 마지막까지 최선을 다해 주세요!",
+        "challenges_open": True,
+        "challenges_open_at": None,
+        "challenges_close_at": None,
+        "challenges_closed_message": "CTF 문제를 아직 확인할 수 없습니다",
+        "ranking_open_at": None,
+        "ranking_close_at": None,
     }
     if not os.path.exists(SETTINGS_FILE):
         return settings
@@ -68,6 +76,14 @@ def load_settings_unlocked() -> dict:
     )
     settings["role_instance_limits"] = _normalize_limit_map(raw.get("role_instance_limits"))
     settings["user_instance_limits"] = _normalize_limit_map(raw.get("user_instance_limits"))
+    settings["ranking_open"] = bool(raw.get("ranking_open", True))
+    settings["ranking_closed_message"] = str(raw.get("ranking_closed_message") or settings["ranking_closed_message"])
+    settings["challenges_open"] = bool(raw.get("challenges_open", True))
+    settings["challenges_open_at"] = raw.get("challenges_open_at") or None
+    settings["challenges_close_at"] = raw.get("challenges_close_at") or None
+    settings["challenges_closed_message"] = str(raw.get("challenges_closed_message") or settings["challenges_closed_message"])
+    settings["ranking_open_at"] = raw.get("ranking_open_at") or None
+    settings["ranking_close_at"] = raw.get("ranking_close_at") or None
     return settings
 
 

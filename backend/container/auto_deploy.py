@@ -6,6 +6,20 @@ MIN_HOST_PORT = 30000
 MAX_HOST_PORT = 40000
 MAX_PORT_TRIES = 30
 
+
+def _normalize_host_port_range(host_port_range):
+    if host_port_range is None:
+        return MIN_HOST_PORT, MAX_HOST_PORT
+
+    if not isinstance(host_port_range, (tuple, list)) or len(host_port_range) != 2:
+        raise ValueError("host_port_range must be a (min_port, max_port) pair")
+
+    start = int(host_port_range[0])
+    end = int(host_port_range[1])
+    if start < 1 or end > 65535 or start > end:
+        raise ValueError("invalid host port range")
+    return start, end
+
 def get_internal_port(dockerfile_path):
     with open(dockerfile_path, encoding="utf-8") as f:
         content = f.read()
@@ -19,7 +33,7 @@ def _sanitize_docker_name(raw: str) -> str:
     return normalized or "challenge"
 
 
-def deploy(problem_dir, instanceid, port=None, name_prefix=None):
+def deploy(problem_dir, instanceid, port=None, name_prefix=None, host_port_range=None):
     try:
         import docker
         from docker.errors import DockerException, APIError
@@ -42,6 +56,7 @@ def deploy(problem_dir, instanceid, port=None, name_prefix=None):
         internal = get_internal_port(dockerfile_path)
     else:
         internal = int(port)
+    host_port_min, host_port_max = _normalize_host_port_range(host_port_range)
 
     try:
         client = docker.from_env()
@@ -55,7 +70,7 @@ def deploy(problem_dir, instanceid, port=None, name_prefix=None):
         host_port = None
         last_error = None
         for _ in range(MAX_PORT_TRIES):
-            host_port = random.randint(MIN_HOST_PORT, MAX_HOST_PORT)
+            host_port = random.randint(host_port_min, host_port_max)
             try:
                 container = client.containers.run(
                     image=image_name,

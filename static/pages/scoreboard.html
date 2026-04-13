@@ -1,73 +1,214 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html class="light" lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>HexaCTF - Scoreboard</title>
-  <link rel="stylesheet" href="/static/css/base.css" />
-  <link rel="stylesheet" href="/static/css/layout.css" />
-  <link rel="stylesheet" href="/static/css/components.css" />
-  <link rel="stylesheet" href="/static/css/scoreboard.css" />
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>HexaCTF - Rankings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+    (() => {
+      const theme = localStorage.getItem("hexactf_theme") || "light";
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: {
+      'on-error-container': '#93000a','on-primary-container': '#dad7ff','secondary-fixed-dim': '#c3c0ff','tertiary-fixed': '#ffdbcc','tertiary': '#7e3000','on-secondary-container': '#454386','on-tertiary': '#ffffff','on-primary-fixed-variant': '#3323cc','surface': '#f8f9fa','background': '#f8f9fa','surface-dim': '#d9dadb','error-container': '#ffdad6','on-primary': '#ffffff','inverse-primary': '#c3c0ff','on-secondary': '#ffffff','surface-container-lowest': '#ffffff','surface-container': '#edeeef','surface-container-high': '#e7e8e9','primary-fixed-dim': '#c3c0ff','on-background': '#191c1d','error': '#ba1a1a','tertiary-fixed-dim': '#ffb695','on-secondary-fixed-variant': '#413f82','outline-variant': '#c7c4d8','surface-container-low': '#f3f4f5','secondary-fixed': '#e2dfff','on-error': '#ffffff','inverse-on-surface': '#f0f1f2','outline': '#777587','surface-tint': '#4d44e3','primary-container': '#4f46e5','primary': '#3525cd','on-tertiary-fixed': '#351000','surface-variant': '#e1e3e4','primary-fixed': '#e2dfff','secondary': '#58579b','surface-bright': '#f8f9fa','on-surface': '#191c1d','on-secondary-fixed': '#140f54','secondary-container': '#b6b4ff','surface-container-highest': '#e1e3e4','on-surface-variant': '#464555','on-tertiary-container': '#ffd2be','on-primary-fixed': '#0f0069','inverse-surface': '#2e3132','tertiary-container': '#a44100','on-tertiary-fixed-variant': '#7b2f00'
+    }}}};
+  </script>
+  <link rel="stylesheet" href="/static/css/stitch-ui.css" />
 </head>
-
-<body data-page="scoreboard">
-  <header class="topbar">
-    <div class="logo">HexaCTF</div>
-    <nav class="nav">
-      <a class="nav-link" href="/challenges" data-page="challenges">Challenges</a>
-      <a class="nav-link active" href="/scoreboard" data-page="scoreboard">Scoreboard</a>
-      <a class="nav-link admin-link hidden" href="/admin" data-page="admin">Admin</a>
-    </nav>
-    <div class="topbar-right">
-      <div class="user-pill" id="currentUser">Guest</div>
-      <button class="btn btn-ghost" id="logoutTopBtn" type="button">Logout</button>
+<body class="route-pending bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-primary" data-page="scoreboard">
+  <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex justify-between items-center px-8 h-16">
+    <div class="flex items-center gap-8">
+      <span class="brand-title text-xl font-black tracking-tighter text-indigo-700">HackerLogin CTF</span>
+      <div class="hidden md:flex gap-6">
+        <a class="nav-link text-slate-500 hover:text-indigo-500 transition-colors duration-200" href="/challenges" data-page="challenges">Challenges</a>
+        <a class="nav-link text-slate-500 hover:text-indigo-500 transition-colors duration-200 active" href="/scoreboard" data-page="scoreboard">Rankings</a>
+        <a class="nav-link admin-link hidden text-slate-500 hover:text-indigo-500 transition-colors duration-200" href="/admin" data-page="admin">Admin</a>
+      </div>
     </div>
-  </header>
+    <div class="flex items-center gap-4">
+      <span class="material-symbols-outlined text-indigo-600 cursor-pointer account-circle-parent" title="비밀번호 변경">account_circle</span>
+      <div class="user-pill cursor-pointer" id="currentUser" title="비밀번호 변경">Guest</div>
+      <button class="bg-indigo-600 text-white text-[10px] font-bold tracking-[0.16em] uppercase px-4 py-2 rounded-sm active:scale-95 transition-transform" id="logoutTopBtn" type="button">Logout</button>
+    </div>
+  </nav>
 
-  <main class="container">
-    <section class="hero">
-      <div>
-        <h1>Scoreboard</h1>
-        <p>Track progress and climb the ranks.</p>
-      </div>
-    </section>
+  <aside class="fixed left-0 top-16 h-full w-64 bg-slate-50 flex flex-col py-6 px-4 space-y-2 hidden lg:flex">
+    <div class="px-8 mb-5">
+      <p class="tracking-widest text-[10px] font-bold uppercase text-slate-400">The Atelier</p>
+      <h2 class="font-headline text-lg font-black text-indigo-600">Global Leaderboard</h2>
+    </div>
+    <a class="side-link flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/challenges"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="side-link-label uppercase text-xs tracking-widest">Challenges</span></a>
+    <a class="side-link active flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/scoreboard"><span class="material-symbols-outlined text-[20px]">leaderboard</span><span class="side-link-label uppercase text-xs tracking-widest">Global Rank</span></a>
+    <a class="side-link admin-link hidden flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/admin"><span class="material-symbols-outlined text-[20px]">shield</span><span class="side-link-label uppercase text-xs tracking-widest">Admin</span></a>
+  </aside>
 
-    <section class="panel scoreboard-panel">
-      <div class="panel-header">
-        <div class="panel-title">Top Players</div>
-        <div class="panel-actions">
-          <span id="scoreboardStatus" class="small">API: checking...</span>
-          <button class="btn btn-ghost" id="refreshScoreboardBtn">Refresh</button>
+  <main class="lg:ml-64 pt-24 pb-12 px-8">
+    <div class="max-w-7xl mx-auto space-y-12">
+      <header class="relative space-y-2">
+        <span class="text-xs uppercase tracking-[0.3em] text-primary font-bold">Hall of Fame</span>
+        <div class="flex items-center gap-3 flex-wrap"><h1 class="font-headline text-5xl font-bold tracking-tighter text-on-background">Rankings</h1><span class="badge-visibility hidden text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" data-badge="rankings"></span></div>
+        <div class="absolute -top-10 -right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
+      </header>
+
+      <section class="hidden bg-surface-container-lowest p-12 shadow-[0_20px_40px_rgba(53,37,205,0.04)] rounded-xl text-center space-y-4" id="scoreboardClosedWrap">
+        <h2 class="font-headline text-3xl font-bold tracking-tight text-on-background">This page has been closed</h2>
+        <p class="text-base text-slate-500" id="scoreboardClosedMessage">마지막까지 최선을 다해 주세요. 끝까지 파이팅!</p>
+      </section>
+
+      <div class="space-y-12" id="scoreboardContentWrap">
+
+      <section class="bg-surface-container-lowest p-8 shadow-[0_20px_40px_rgba(53,37,205,0.04)] rounded-xl space-y-6">
+        <div class="flex justify-between items-end gap-4 flex-wrap">
+            <div class="space-y-1">
+              <h3 class="font-headline font-bold text-xl">Solves Trajectory</h3>
+              <p class="text-sm text-outline">Top 10 players across the full contest timeline · Ctrl + Wheel to adjust the visible time range</p>
+            </div>
+          <div class="flex gap-4 items-center flex-wrap">
+            <div class="text-sm text-slate-500" id="scoreboardStatus">API: checking...</div>
+            <button class="bg-indigo-600 text-white font-headline text-xs px-4 py-2 rounded-sm hover:shadow-lg transition-all active:scale-95" id="refreshScoreboardBtn" type="button">Refresh</button>
+          </div>
         </div>
+        <div class="h-[400px] w-full relative border border-outline-variant/20 bg-[linear-gradient(to_right,#e7e8e9_1px,transparent_1px),linear-gradient(to_bottom,#e7e8e9_1px,transparent_1px)] bg-[size:40px_40px] overflow-hidden" id="scoreboardTimelineFrame">
+          <svg class="absolute inset-0 w-full h-full overflow-visible" id="scoreboardTimelineSvg" preserveAspectRatio="none" viewBox="0 0 1000 400"></svg>
+          <div class="absolute inset-0 hidden flex items-center justify-center bg-white/70 text-sm font-bold text-slate-500" id="scoreboardTimelineEmpty">No ranking history yet.</div>
+        </div>
+        <div class="flex justify-between text-[10px] uppercase tracking-[0.18em] text-slate-400 font-bold" id="scoreboardTimelineLabels">
+          <span>-24h</span><span>-18h</span><span>-12h</span><span>-6h</span><span>Now</span>
+        </div>
+        <div class="flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-600" id="scoreboardTimelineLegend"></div>
+        <div class="flex items-center justify-between gap-4 flex-wrap pt-2 text-sm text-slate-500">
+          <div id="scoreboardParticipants">0명이 참여 중입니다.</div>
+          <div id="scoreboardUpdatedAt">Last updated: -</div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end" id="scoreboardPodium">
+        <article class="podium-card podium-card-silver md:col-span-3 bg-surface-container-lowest p-6 shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex flex-col items-center text-center space-y-4" data-rank="2">
+          <div class="relative">
+            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center podium-avatar podium-avatar-silver">
+              <span class="material-symbols-outlined text-slate-500">person</span>
+            </div>
+            <div class="absolute -bottom-2 -right-2 bg-slate-400 text-white w-8 h-8 rounded-full flex items-center justify-center font-headline font-bold border-4 border-surface-container-lowest podium-badge podium-badge-silver">2</div>
+          </div>
+          <div>
+            <h4 class="font-headline font-bold text-lg" data-field="display_name">-</h4>
+            <p class="text-[10px] tracking-widest text-outline font-bold" data-field="score">0 PTS</p>
+          </div>
+        </article>
+        <article class="podium-card podium-card-gold md:col-span-6 bg-surface-container-lowest p-8 shadow-[0_20px_40px_rgba(53,37,205,0.08)] flex flex-col items-center text-center space-y-6 relative overflow-hidden" data-rank="1">
+          <div class="absolute top-0 left-0 w-full h-1 podium-topline-gold"></div>
+          <div class="relative">
+            <div class="w-24 h-24 rounded-full bg-amber-50 flex items-center justify-center podium-avatar podium-avatar-gold">
+              <span class="material-symbols-outlined text-amber-500 text-4xl">military_tech</span>
+            </div>
+            <div class="absolute -bottom-3 -right-3 bg-amber-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-headline font-bold text-xl border-4 border-surface-container-lowest podium-badge podium-badge-gold">1</div>
+          </div>
+          <div>
+            <h4 class="font-headline font-bold text-2xl tracking-tight" data-field="display_name">-</h4>
+            <p class="text-xs tracking-[0.2em] text-primary font-bold" data-field="score">0 PTS</p>
+          </div>
+          <div class="flex gap-4 flex-wrap justify-center">
+            <span class="text-[10px] px-3 py-1 bg-secondary/10 text-secondary rounded-full" data-field="solved_count">0 solves</span>
+          </div>
+        </article>
+        <article class="podium-card podium-card-bronze md:col-span-3 bg-surface-container-lowest p-6 shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex flex-col items-center text-center space-y-4" data-rank="3">
+          <div class="relative">
+            <div class="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center podium-avatar podium-avatar-bronze">
+              <span class="material-symbols-outlined text-orange-500">person</span>
+            </div>
+            <div class="absolute -bottom-2 -right-2 bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-headline font-bold border-4 border-surface-container-lowest podium-badge podium-badge-bronze">3</div>
+          </div>
+          <div>
+            <h4 class="font-headline font-bold text-lg" data-field="display_name">-</h4>
+            <p class="text-[10px] tracking-widest text-outline font-bold" data-field="score">0 PTS</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="bg-surface-container-lowest rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.04)] overflow-hidden">
+        <div class="p-6 border-b border-surface-container flex items-center justify-between gap-4 flex-wrap">
+          <h2 class="font-headline font-bold text-lg">Leaderboard Directory</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-container-low">
+              <tr>
+                <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Rank</th>
+                <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">User</th>
+                <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Score</th>
+                <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Solved</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-surface-container-low" id="scoreboardBody">
+              <tr><td class="px-6 py-8 text-slate-400 text-center" colspan="4">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
       </div>
-      <div class="scoreboard-table-wrap">
-        <table class="scoreboard-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>User</th>
-              <th>Score</th>
-              <th>Solved</th>
-            </tr>
-          </thead>
-          <tbody id="scoreboardBody">
-            <tr>
-              <td class="scoreboard-empty" colspan="4">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    </div>
   </main>
 
-  <footer class="footer">
-    HexaCTF © 2026
-  </footer>
+  <script src="/static/js/app-core.js?v=1776019819"></script>
+  <script src="/static/js/app-auth.js?v=1776019819"></script>
+  <script src="/static/js/app-scoreboard.js?v=1776019819"></script>
+  <script src="/static/js/app-router.js?v=1776019819"></script>
+  <script src="/static/js/app-main.js?v=1776019819"></script>
 
-  <script src="/static/js/app-core.js"></script>
-  <script src="/static/js/app-auth.js"></script>
-  <script src="/static/js/app-scoreboard.js"></script>
-  <script src="/static/js/app-router.js"></script>
-  <script src="/static/js/app-main.js"></script>
+  <div class="password-modal hidden" id="passwordChangeModal" aria-hidden="true">
+    <div class="password-modal-backdrop" data-action="close-password-modal"></div>
+    <div class="password-modal-dialog">
+      <button class="password-modal-close" type="button" data-action="close-password-modal" aria-label="Close">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3 class="font-headline text-lg font-bold tracking-tight text-on-background mb-6">비밀번호 변경</h3>
+      <form id="passwordChangeForm" class="space-y-5" novalidate>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">현재 비밀번호</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcCurrentPassword" type="password" autocomplete="current-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcCurrentPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcCurrentCapsMessage" class="capslock-message"></div>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcNewPassword" type="password" autocomplete="new-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcNewPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcNewCapsMessage" class="capslock-message"></div>
+          <div class="password-strength" aria-live="polite">
+            <div class="password-strength-bar"><div id="pcStrengthFill" class="password-strength-fill"></div></div>
+            <div id="pcStrengthText" class="password-strength-text">강도: -</div>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">8자+</p>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호 확인</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcConfirmPassword" type="password" autocomplete="new-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcConfirmPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcConfirmCapsMessage" class="capslock-message"></div>
+        </div>
+        <div id="pcMessage" class="text-sm min-h-[18px]"></div>
+        <button class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-3 font-bold tracking-[0.15em] text-xs hover:shadow-[0_8px_20px_rgba(53,37,205,0.2)] active:scale-95 transition-all" type="submit">비밀번호 변경</button>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

@@ -14,7 +14,7 @@ ACTIVE_INSTANCE_STATUSES = {"starting", "running", "stopping"}
 
 
 def _default_state() -> dict:
-    return {"next_instance_id": 1, "instances": {}}
+    return {"next_instance_id": 1, "instances": {}, "reusable_instance_ids": []}
 
 
 def _normalize_state(raw: object) -> dict:
@@ -33,8 +33,26 @@ def _normalize_state(raw: object) -> dict:
     if not isinstance(instances, dict):
         instances = {}
 
+    reusable = raw.get("reusable_instance_ids")
+    if not isinstance(reusable, list):
+        reusable = []
+    normalized_reusable = []
+    seen = set()
+    used_ids = {int(key) for key in instances.keys() if str(key).isdigit()}
+    for value in reusable:
+        try:
+            candidate = int(value)
+        except (TypeError, ValueError):
+            continue
+        if candidate < 1 or candidate in used_ids or candidate in seen:
+            continue
+        seen.add(candidate)
+        normalized_reusable.append(candidate)
+    normalized_reusable.sort()
+
     raw["next_instance_id"] = next_instance_id_int
     raw["instances"] = instances
+    raw["reusable_instance_ids"] = normalized_reusable
     return raw
 
 
@@ -55,6 +73,12 @@ def save_state_unlocked(state: dict) -> None:
 
 
 def allocate_instance_id(state: dict) -> int:
+    reusable_ids = state.get("reusable_instance_ids")
+    if isinstance(reusable_ids, list) and reusable_ids:
+        reusable_ids.sort()
+        instance_id = int(reusable_ids.pop(0))
+        state["reusable_instance_ids"] = reusable_ids
+        return instance_id
     instance_id = int(state.get("next_instance_id", 1))
     state["next_instance_id"] += 1
     return instance_id
@@ -171,7 +195,14 @@ def try_mark_stopping(*, instance_id: int, requester_username: str | None, reque
         return "ready", dict(inst)
 
 
-def mark_running(instance_id: int, *, port: int, container_id: str, url: str | None = None) -> None:
+def mark_running(
+    instance_id: int,
+    *,
+    port: int,
+    container_id: str,
+    url: str | None = None,
+    access_mode: str | None = None,
+) -> None:
     with exclusive_lock(STATE_LOCK_FILE):
         state = load_state_unlocked()
         instances = state.get("instances") or {}
@@ -184,6 +215,8 @@ def mark_running(instance_id: int, *, port: int, container_id: str, url: str | N
         inst["updated_at"] = _now_iso()
         if url:
             inst["url"] = url
+        if access_mode:
+            inst["access_mode"] = access_mode
         instances[str(instance_id)] = inst
         state["instances"] = instances
         save_state_unlocked(state)
@@ -193,7 +226,7 @@ def mark_error(instance_id: int, reason: str) -> None:
     with exclusive_lock(STATE_LOCK_FILE):
         state = load_state_unlocked()
         instances = state.get("instances") or {}
-        inst = instances.get(str(instance_id))
+        inst: dict[str, object] | object | None = instances.get(str(instance_id))
         if not isinstance(inst, dict):
             inst = {"instance_id": instance_id}
         inst["status"] = "error"
@@ -207,7 +240,15 @@ def mark_error(instance_id: int, reason: str) -> None:
 def remove_instance(instance_id: int) -> None:
     with exclusive_lock(STATE_LOCK_FILE):
         state = load_state_unlocked()
-        (state.get("instances") or {}).pop(str(instance_id), None)
+        removed = (state.get("instances") or {}).pop(str(instance_id), None)
+        if removed is not None:
+            reusable_ids = state.get("reusable_instance_ids")
+            if not isinstance(reusable_ids, list):
+                reusable_ids = []
+            if instance_id not in reusable_ids:
+                reusable_ids.append(int(instance_id))
+                reusable_ids.sort()
+            state["reusable_instance_ids"] = reusable_ids
         save_state_unlocked(state)
 
 

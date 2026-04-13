@@ -1,0 +1,9 @@
+[Interface]
+Address = 10.70.0.1/24
+ListenPort = 51820
+PrivateKey = <EC2_PRIVATE_KEY>
+
+[Peer]
+PublicKey = <INTERNAL_SERVER_PUBLIC_KEY>
+AllowedIPs = 10.70.0.2/32
+PersistentKeepalive = 25

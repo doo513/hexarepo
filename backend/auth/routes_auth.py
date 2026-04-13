@@ -87,28 +87,26 @@ def register(req: models.RegisterRequest, request: Request):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    token_value = token.create_access_token(user["username"], user["role"])
-    body = {
+    return JSONResponse({
         "status": "ok",
-        "token_type": "bearer",
-        "user": auth.public_user(user)
-    }
-    if _return_access_token_in_body():
-        body["access_token"] = token_value
-    resp = JSONResponse(body)
-    _set_auth_cookie(resp, request, token_value)
-    _set_csrf_cookie(resp, request, secrets.token_hex(16))
-    return resp
+        "pending": True,
+        "message": "관리자 승인 후 로그인할 수 있습니다.",
+        "user": auth.public_user(user),
+    })
 
 
 @router.post("/api/auth/login")
 def login(req: models.LoginRequest, request: Request):
     require_same_origin(request)
-    user = auth.authenticate_user(req.username, req.password)
+    user, reason = auth.authenticate_user(req.username, req.password)
     if not user:
+        if reason == "pending":
+            raise HTTPException(status_code=403, detail="관리자 승인 대기 중입니다.")
+        if reason == "rejected":
+            raise HTTPException(status_code=403, detail="승인되지 않은 계정입니다.")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token_value = token.create_access_token(user["username"], user["role"])
+    token_value = token.create_access_token(user["username"], user["role"], session_nonce=user.get("session_nonce"))
     body = {
         "status": "ok",
         "token_type": "bearer",
@@ -134,6 +132,19 @@ def me(request: Request):
         _set_csrf_cookie(resp, request, secrets.token_hex(16))
     return resp
 
+
+
+
+@router.post("/api/auth/change-password")
+def change_password(req: models.ChangePasswordRequest, request: Request):
+    require_same_origin(request)
+    require_csrf(request)
+    user = get_current_user(request)
+    try:
+        auth.change_own_password(user["username"], req.current_password, req.new_password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return JSONResponse({"status": "ok", "message": "비밀번호가 변경되었습니다."})
 
 @router.post("/api/auth/logout")
 def logout(request: Request):

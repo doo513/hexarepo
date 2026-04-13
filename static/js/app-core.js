@@ -3,6 +3,10 @@
     grid: document.getElementById("grid"),
     logEl: document.getElementById("log"),
     filtersEl: document.getElementById("filters"),
+    sidebarCategoryNav: document.getElementById("sidebarCategoryNav"),
+    challengeProgressLabel: document.getElementById("challengeProgressLabel"),
+    challengeProgressValue: document.getElementById("challengeProgressValue"),
+    challengeProgressBar: document.getElementById("challengeProgressBar"),
     searchInput: document.getElementById("searchInput"),
     clearLogBtn: document.getElementById("clearLogBtn"),
     navLinks: document.querySelectorAll(".nav-link"),
@@ -10,6 +14,16 @@
     scoreboardBody: document.getElementById("scoreboardBody"),
     scoreboardStatusEl: document.getElementById("scoreboardStatus"),
     refreshScoreboardBtn: document.getElementById("refreshScoreboardBtn"),
+    scoreboardTimelineSvg: document.getElementById("scoreboardTimelineSvg"),
+    scoreboardTimelineLabels: document.getElementById("scoreboardTimelineLabels"),
+    scoreboardTimelineLegend: document.getElementById("scoreboardTimelineLegend"),
+    scoreboardTimelineEmpty: document.getElementById("scoreboardTimelineEmpty"),
+    scoreboardPodium: document.getElementById("scoreboardPodium"),
+    scoreboardParticipants: document.getElementById("scoreboardParticipants"),
+    scoreboardUpdatedAt: document.getElementById("scoreboardUpdatedAt"),
+    scoreboardClosedWrap: document.getElementById("scoreboardClosedWrap"),
+    scoreboardContentWrap: document.getElementById("scoreboardContentWrap"),
+    scoreboardClosedMessage: document.getElementById("scoreboardClosedMessage"),
     authTabs: document.querySelectorAll(".auth-tab"),
     loginForm: document.getElementById("loginForm"),
     registerForm: document.getElementById("registerForm"),
@@ -24,8 +38,34 @@
     refreshUsersBtn: document.getElementById("refreshUsersBtn"),
     resetScoreboardBtn: document.getElementById("resetScoreboardBtn"),
     adminUserBody: document.getElementById("adminUserBody"),
+    adminPendingBody: document.getElementById("adminPendingBody"),
     userInstanceLimitInput: document.getElementById("userInstanceLimitInput"),
-    saveUserInstanceLimitBtn: document.getElementById("saveUserInstanceLimitBtn")
+    saveUserInstanceLimitBtn: document.getElementById("saveUserInstanceLimitBtn"),
+    rankingToggleBtn: document.getElementById("rankingToggleBtn"),
+    rankingStateLabel: document.getElementById("rankingStateLabel"),
+    rankingClosedMessage: document.getElementById("rankingClosedMessage"),
+    adminUserCountEl: document.getElementById("adminUserCount"),
+    adminActiveSessionsEl: document.getElementById("adminActiveSessions"),
+    challengeDetailModal: document.getElementById("challengeDetailModal"),
+    detailCategory: document.getElementById("detailCategory"),
+    detailDifficulty: document.getElementById("detailDifficulty"),
+    detailPoints: document.getElementById("detailPoints"),
+    detailTitle: document.getElementById("detailTitle"),
+    detailAuthor: document.getElementById("detailAuthor"),
+    detailSolves: document.getElementById("detailSolves"),
+    detailDescription: document.getElementById("detailDescription"),
+    detailDownloadsWrap: document.getElementById("detailDownloadsWrap"),
+    detailDownloads: document.getElementById("detailDownloads"),
+    detailStartBtn: document.getElementById("detailStartBtn"),
+    detailStopBtn: document.getElementById("detailStopBtn"),
+    detailInstanceId: document.getElementById("detailInstanceId"),
+    detailInstanceUrl: document.getElementById("detailInstanceUrl"),
+    detailConnectHint: document.getElementById("detailConnectHint"),
+    detailCopyBtn: document.getElementById("detailCopyBtn"),
+    detailCopyConnectBtn: document.getElementById("detailCopyConnectBtn"),
+    detailFlagInput: document.getElementById("detailFlagInput"),
+    detailFlagMessage: document.getElementById("detailFlagMessage"),
+    detailContent: document.querySelector(".challenge-detail-content")
   };
 
   const state = {
@@ -34,7 +74,9 @@
     activeQuery: "",
     runningMap: new Map(),
     auth: { token: null, user: null },
-    activeAuthTab: "login"
+    activeAuthTab: "login",
+    currentDetailKey: null,
+    detailChallenge: null
   };
 
   function log(line) {
@@ -77,9 +119,16 @@
   }
 
   function normalizeCat(cat) {
-    const c = (cat || "").toLowerCase();
-    if (["pwn", "web", "rev", "crypto"].includes(c)) return c;
-    return "misc";
+    const aliases = {
+      pwnable: "pwn",
+      pw: "pwn",
+      reversing: "rev",
+      reverse: "rev",
+      forensics: "forensic"
+    };
+    const c = String(cat || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/-/g, "_");
+    if (!c) return "misc";
+    return aliases[c] || c;
   }
 
   function formatBytes(bytes) {
@@ -165,10 +214,11 @@
 
   function buildConnectHint(ch, instance) {
     if (!instance?.url) return "-";
+    const accessMode = String(instance.access_mode || ch.access_mode || "").toLowerCase();
     const cat = normalizeCat(ch.type ?? ch.category);
     const { host, port } = parseHostPort(instance.url);
 
-    if (cat === "pwn" || cat === "crypto") {
+    if (accessMode === "tcp" || (!accessMode && (cat === "pwn" || cat === "crypto"))) {
       if (host && port) return `nc ${host} ${port}`;
       return `nc ${instance.url}`;
     }

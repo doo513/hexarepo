@@ -30,6 +30,7 @@ HexaCTF is a lightweight CTF platform with a FastAPI backend and a static fronte
 - `category` or `type`: pwn/web/rev/misc/etc.
 - `score`: points.
 - `port`: internal container port (optional).
+- `access_mode`: public exposure mode override (`http` or `tcp`, optional).
 - `container`: set to `false` for non-container challenges.
 - `container_dir`: subdir to build/run (optional).
 - `downloads`: list of `{label, path}`.
@@ -48,6 +49,8 @@ HexaCTF is a lightweight CTF platform with a FastAPI backend and a static fronte
 - `HOST_URL` or `HEXACTF_INSTANCE_BASE_URL`
 - `HEXACTF_PROXY_URL_TEMPLATE`, `HEXACTF_PROXY_DOMAIN`
 - `HOST_IP`
+- `HEXACTF_HTTP_PORT_RANGE`, `HEXACTF_TCP_PORT_RANGE`
+- `HEXACTF_HTTP_URL_TEMPLATE`, `HEXACTF_TCP_PUBLIC_HOST`, `HEXACTF_TCP_PUBLIC_URL_TEMPLATE`
 
 **GitHub Notes**
 - Do not commit runtime data: `data/users.json`, `data/secret.key`, `instances.json`, `*.lock`, `__pycache__/`.

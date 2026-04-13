@@ -15,9 +15,17 @@
         window.location.href = "/login";
         return;
       }
-      if (window.HEXACTF.router && window.HEXACTF.router.guardRoutes) {
-        window.HEXACTF.router.guardRoutes();
+    }
+
+    if (window.HEXACTF.router && window.HEXACTF.router.guardRoutes) {
+      const allowed = window.HEXACTF.router.guardRoutes();
+      if (!allowed && page !== 'login') {
+        return;
       }
+    }
+
+    if (window.HEXACTF.router && window.HEXACTF.router.revealProtectedPage) {
+      window.HEXACTF.router.revealProtectedPage();
     }
 
     if (page === "challenges" && window.HEXACTF.challenges) {
@@ -26,6 +34,9 @@
         await window.HEXACTF.challenges.loadInstances();
       }
       window.HEXACTF.challenges.render();
+      if (window.HEXACTF.challenges.maybeOpenFromPath) {
+        window.HEXACTF.challenges.maybeOpenFromPath();
+      }
     }
 
     if (page === "scoreboard" && window.HEXACTF.scoreboard) {
@@ -35,7 +46,24 @@
     if (page === "admin" && window.HEXACTF.admin) {
       window.HEXACTF.admin.refreshUsers();
     }
+
+    if (window.HEXACTF.refreshMe && page !== "login") {
+      window.setInterval(async () => {
+        const ok = await window.HEXACTF.refreshMe();
+        if (!ok && page !== "login") {
+          window.location.href = "/login";
+        }
+      }, 5000);
+    }
   }
 
-  boot();
+  boot().catch(() => {
+    if (page !== 'login') {
+      window.location.href = '/login';
+      return;
+    }
+    if (window.HEXACTF.router && window.HEXACTF.router.revealProtectedPage) {
+      window.HEXACTF.router.revealProtectedPage();
+    }
+  });
 })();

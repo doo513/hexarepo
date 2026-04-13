@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from urllib.parse import urlparse
 
 from .settings_service import get_user_instance_limit
 from .instance_store import (
@@ -13,7 +14,95 @@ from .instance_store import (
     try_mark_stopping,
 )
 from ..container import auto_deploy, auto_stop
-from .routes.challenges import load_challenges, safe_join
+from .routes.challenges import load_challenges, normalize_access_mode, safe_join
+
+DEFAULT_HOST_PORT_RANGE = (30000, 40000)
+
+
+def _parse_port_range(raw: str | None) -> tuple[int, int] | None:
+    value = str(raw or "").strip()
+    if not value:
+        return None
+
+    normalized = value.replace(":", "-").replace(",", "-")
+    parts = [part.strip() for part in normalized.split("-", 1)]
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise ValueError("port range must look like 32000-32049")
+
+    start = int(parts[0])
+    end = int(parts[1])
+    if start < 1 or end > 65535 or start > end:
+        raise ValueError("invalid port range")
+    return start, end
+
+
+def _select_host_port_range(access_mode: str) -> tuple[int, int]:
+    if access_mode == "tcp":
+        candidates = (
+            os.environ.get("HEXACTF_TCP_PORT_RANGE"),
+            os.environ.get("HEXACTF_INSTANCE_PORT_RANGE"),
+            os.environ.get("HEXACTF_PORT_RANGE"),
+        )
+    else:
+        candidates = (
+            os.environ.get("HEXACTF_HTTP_PORT_RANGE"),
+            os.environ.get("HEXACTF_WEB_PORT_RANGE"),
+            os.environ.get("HEXACTF_INSTANCE_PORT_RANGE"),
+            os.environ.get("HEXACTF_PORT_RANGE"),
+        )
+
+    for raw in candidates:
+        parsed = _parse_port_range(raw)
+        if parsed:
+            return parsed
+    return DEFAULT_HOST_PORT_RANGE
+
+
+def _normalize_public_host(raw: str | None, *, default: str = "localhost") -> str:
+    value = str(raw or "").strip()
+    if not value:
+        return default
+    if "://" in value:
+        parsed = urlparse(value)
+        if parsed.hostname:
+            return parsed.hostname
+    return value.split("/")[0]
+
+
+def _build_http_public_url(external_port: int) -> str:
+    template = (
+        os.environ.get("HEXACTF_HTTP_URL_TEMPLATE")
+        or os.environ.get("HEXACTF_WEB_URL_TEMPLATE")
+        or os.environ.get("HEXACTF_PROXY_URL_TEMPLATE")
+    )
+    if template:
+        return template.replace("{port}", str(external_port))
+
+    proxy_domain = (
+        os.environ.get("HEXACTF_HTTP_PROXY_DOMAIN")
+        or os.environ.get("HEXACTF_WEB_PROXY_DOMAIN")
+        or os.environ.get("HEXACTF_PROXY_DOMAIN")
+    )
+    if proxy_domain:
+        return f"http://p-{external_port}.{proxy_domain}"
+
+    host = _normalize_public_host(os.environ.get("HOST_IP"))
+    return f"http://{host}:{external_port}"
+
+
+def _build_tcp_public_url(external_port: int) -> str:
+    template = os.environ.get("HEXACTF_TCP_PUBLIC_URL_TEMPLATE") or os.environ.get("HEXACTF_TCP_URL_TEMPLATE")
+    if template:
+        return template.replace("{port}", str(external_port))
+
+    host = _normalize_public_host(os.environ.get("HEXACTF_TCP_PUBLIC_HOST") or os.environ.get("HOST_IP"))
+    return f"http://{host}:{external_port}"
+
+
+def _build_public_url(*, access_mode: str, external_port: int) -> str:
+    if access_mode == "tcp":
+        return _build_tcp_public_url(external_port)
+    return _build_http_public_url(external_port)
 
 
 class InstancesError(Exception):
@@ -29,12 +118,14 @@ def _deploy(
     *,
     problem_key: str,
     port: int | None = None,
+    host_port_range: tuple[int, int] | None = None,
 ) -> dict:
     return auto_deploy.deploy(
         problem_dir,
         instance_id,
         port=port,
         name_prefix=problem_key,
+        host_port_range=host_port_range,
     )
 
 
@@ -80,6 +171,8 @@ def start_instance(*, user: dict, problem_key: str) -> dict:
     else:
         problem_dir = base_dir
     port = challenge.get("port")
+    access_mode = normalize_access_mode(challenge)
+    host_port_range = _select_host_port_range(access_mode)
     challenge_id = challenge.get("challenge_id", problem_key)
     title = challenge.get("title", problem_key)
     username = user.get("username")
@@ -107,10 +200,11 @@ def start_instance(*, user: dict, problem_key: str) -> dict:
             instance_id,
             problem_key=problem_key,
             port=port,
+            host_port_range=host_port_range,
         )
     except ValueError as e:
         mark_error(instance_id, str(e))
-        raise InstancesError(400, "Invalid port in challenges.json")
+        raise InstancesError(400, str(e))
     except FileNotFoundError as e:
         mark_error(instance_id, str(e))
         raise InstancesError(500, str(e))
@@ -119,17 +213,7 @@ def start_instance(*, user: dict, problem_key: str) -> dict:
         raise InstancesError(500, str(e))
 
     external_port = int(info["external_port"])
-
-    proxy_template = os.environ.get("HEXACTF_PROXY_URL_TEMPLATE")
-    proxy_domain = os.environ.get("HEXACTF_PROXY_DOMAIN")
-
-    if proxy_template:
-        display_url = proxy_template.replace("{port}", str(external_port))
-    elif proxy_domain:
-        display_url = f"http://p-{external_port}.{proxy_domain}"
-    else:
-        host_ip = os.environ.get("HOST_IP", "localhost")
-        display_url = f"http://{host_ip}:{external_port}"
+    display_url = _build_public_url(access_mode=access_mode, external_port=external_port)
 
     try:
         mark_running(
@@ -137,6 +221,7 @@ def start_instance(*, user: dict, problem_key: str) -> dict:
             port=external_port,
             container_id=str(info["container_name"]),
             url=display_url,
+            access_mode=access_mode,
         )
     except KeyError:
         mark_error(instance_id, "state missing after deploy")
@@ -148,6 +233,7 @@ def start_instance(*, user: dict, problem_key: str) -> dict:
         "problem": problem_key,
         "title": title,
         "external_port": external_port,
+        "access_mode": access_mode,
         "url": display_url,
     }
 
@@ -194,6 +280,7 @@ def list_instances(*, user: dict) -> list[dict]:
             "title": inst.get("title"),
             "status": inst.get("status"),
             "port": inst.get("port"),
+            "access_mode": inst.get("access_mode"),
             "url": inst.get("url"),
         }
         if user.get("role") == "admin":

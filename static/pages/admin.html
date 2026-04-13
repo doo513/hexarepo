@@ -1,80 +1,261 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html class="light" lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>HexaCTF - Admin</title>
-  <link rel="stylesheet" href="/static/css/base.css" />
-  <link rel="stylesheet" href="/static/css/layout.css" />
-  <link rel="stylesheet" href="/static/css/components.css" />
-  <link rel="stylesheet" href="/static/css/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+    (() => {
+      const theme = localStorage.getItem("hexactf_theme") || "light";
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: {
+      'surface-variant': '#e1e3e4','surface-dim': '#d9dadb','surface-tint': '#4d44e3','on-secondary-container': '#454386','tertiary-fixed': '#ffdbcc','on-background': '#191c1d','tertiary-fixed-dim': '#ffb695','secondary-fixed-dim': '#c3c0ff','surface-container': '#edeeef','inverse-surface': '#2e3132','on-error-container': '#93000a','surface-container-low': '#f3f4f5','surface': '#f8f9fa','primary-fixed-dim': '#c3c0ff','inverse-on-surface': '#f0f1f2','on-surface-variant': '#464555','on-primary-fixed-variant': '#3323cc','on-primary-container': '#dad7ff','secondary-container': '#b6b4ff','outline': '#777587','on-surface': '#191c1d','on-tertiary-container': '#ffd2be','background': '#f8f9fa','on-primary-fixed': '#0f0069','primary-container': '#4f46e5','error-container': '#ffdad6','on-secondary-fixed-variant': '#413f82','on-tertiary-fixed': '#351000','tertiary-container': '#a44100','secondary-fixed': '#e2dfff','tertiary': '#7e3000','surface-container-lowest': '#ffffff','secondary': '#58579b','error': '#ba1a1a','surface-container-high': '#e7e8e9','primary-fixed': '#e2dfff','on-tertiary': '#ffffff','on-secondary': '#ffffff','primary': '#3525cd','surface-container-highest': '#e1e3e4','on-secondary-fixed': '#140f54','on-primary': '#ffffff','outline-variant': '#c7c4d8','inverse-primary': '#c3c0ff','on-tertiary-fixed-variant': '#7b2f00','surface-bright': '#f8f9fa'
+    }}}};
+  </script>
+  <link rel="stylesheet" href="/static/css/stitch-ui.css" />
 </head>
-
-<body data-page="admin">
-  <header class="topbar">
-    <div class="logo">HexaCTF</div>
-    <nav class="nav">
-      <a class="nav-link" href="/challenges" data-page="challenges">Challenges</a>
-      <a class="nav-link" href="/scoreboard" data-page="scoreboard">Scoreboard</a>
-      <a class="nav-link admin-link active" href="/admin" data-page="admin">Admin</a>
-    </nav>
-    <div class="topbar-right">
-      <div class="user-pill" id="currentUser">Guest</div>
-      <button class="btn btn-ghost" id="logoutTopBtn" type="button">Logout</button>
+<body class="route-pending bg-surface text-on-surface" data-page="admin">
+  <nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-16 bg-white/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(53,37,205,0.04)]">
+    <div class="flex items-center gap-8">
+      <span class="brand-title text-xl font-black tracking-tighter text-indigo-700">HackerLogin CTF</span>
+      <div class="hidden md:flex gap-6">
+        <a class="nav-link text-slate-500 hover:text-indigo-500 transition-colors duration-200" href="/challenges" data-page="challenges">Challenges</a>
+        <a class="nav-link text-slate-500 hover:text-indigo-500 transition-colors duration-200" href="/scoreboard" data-page="scoreboard">Rankings</a>
+        <a class="nav-link admin-link text-slate-500 hover:text-indigo-500 transition-colors duration-200 active" href="/admin" data-page="admin">Admin</a>
+      </div>
     </div>
-  </header>
+    <div class="flex items-center gap-4">
+      <span class="material-symbols-outlined text-indigo-600 cursor-pointer account-circle-parent" title="비밀번호 변경">account_circle</span>
+      <div class="user-pill cursor-pointer" id="currentUser" title="비밀번호 변경">Guest</div>
+      <button class="bg-indigo-600 text-white text-[10px] font-bold tracking-[0.16em] uppercase px-4 py-2 rounded-sm active:scale-95 transition-transform" id="logoutTopBtn" type="button">Logout</button>
+    </div>
+  </nav>
 
-  <main class="container">
-    <section class="hero">
-      <div>
-        <h1>Admin</h1>
-        <p>Manage users and reset the scoreboard.</p>
+  <aside class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-50 flex flex-col py-6 px-4 space-y-2 hidden lg:flex">
+    <div class="px-8 mb-5">
+      <p class="tracking-widest text-[10px] font-bold uppercase text-slate-400">The Atelier</p>
+      <h2 class="font-headline text-lg font-black text-indigo-600">Admin Console</h2>
+    </div>
+    <a class="side-link flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/challenges"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="side-link-label uppercase text-xs tracking-widest">Challenges</span></a>
+    <a class="side-link flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/scoreboard"><span class="material-symbols-outlined text-[20px]">leaderboard</span><span class="side-link-label uppercase text-xs tracking-widest">Rankings</span></a>
+    <a class="side-link flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="#adminPanel"><span class="material-symbols-outlined text-[20px]">terminal</span><span class="side-link-label uppercase text-xs tracking-widest">Instance Config</span></a>
+    <a class="side-link active flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="#adminPanel"><span class="material-symbols-outlined text-[20px]">shield</span><span class="side-link-label uppercase text-xs tracking-widest">Admin</span></a>
+  </aside>
+
+  <main class="ml-0 lg:ml-64 mt-16 p-8 min-h-screen">
+    <header class="mb-12">
+      <h1 class="text-4xl font-headline font-bold tracking-tight text-on-surface">Admin Console</h1>
+      <p class="text-slate-500 mt-2">Manage users and system configurations.</p>
+    </header>
+
+    <section class="space-y-6 mb-8">
+      <div class="bg-surface-container-lowest p-6 rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.02)]">
+        <div class="flex flex-col xl:flex-row xl:items-start gap-6">
+          <div class="xl:w-72 shrink-0">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Challenge Controls</p>
+            <h2 class="font-headline text-2xl font-bold mt-1">Challenge Visibility</h2>
+            <p class="text-slate-500 mt-2 leading-relaxed" id="challengeStateLabel">Challenges are currently open.</p>
+          </div>
+          <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4 items-end">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2" for="challengeOpenAt">Open Time (KST)</label>
+              <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 py-2 px-3 text-sm" id="challengeOpenAt" type="datetime-local" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2" for="challengeCloseAt">Close Time (KST)</label>
+              <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 py-2 px-3 text-sm" id="challengeCloseAt" type="datetime-local" />
+            </div>
+            <div class="md:col-span-2 xl:col-span-1">
+              <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2" for="challengeClosedMessage">Closed Message</label>
+              <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 py-2 px-3 text-sm" id="challengeClosedMessage" type="text" placeholder="CTF 문제를 아직 확인할 수 없습니다" />
+            </div>
+            <button class="w-full bg-indigo-600 text-white font-headline text-sm px-5 py-2.5 rounded-sm hover:shadow-lg transition-all active:scale-95" id="challengeScheduleBtn" type="button">Save Schedule</button>
+            <button class="w-full bg-slate-500 text-white font-headline text-sm px-5 py-2.5 rounded-sm hover:shadow-lg transition-all active:scale-95" id="challengeScheduleResetBtn" type="button">Reset Schedule</button>
+            <button class="w-full bg-red-500 text-white font-headline text-sm px-5 py-2.5 rounded-sm hover:shadow-lg transition-all active:scale-95" id="challengeToggleBtn" type="button">Close Challenges</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-surface-container-lowest p-6 rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.02)]">
+        <div class="flex flex-col xl:flex-row xl:items-start gap-6">
+          <div class="xl:w-72 shrink-0">
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Ranking Controls</p>
+            <h2 class="font-headline text-2xl font-bold mt-1">Ranking Visibility</h2>
+            <p class="text-slate-500 mt-2 leading-relaxed" id="rankingStateLabel">Rankings are currently open for everyone.</p>
+          </div>
+          <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4 items-end">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2" for="rankingCloseAt">Close Time (KST)</label>
+              <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 py-2 px-3 text-sm" id="rankingCloseAt" type="datetime-local" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2" for="rankingOpenAt">Open Time (KST)</label>
+              <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 py-2 px-3 text-sm" id="rankingOpenAt" type="datetime-local" />
+            </div>
+            <div class="md:col-span-2 xl:col-span-1">
+              <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2" for="rankingClosedMessage">Closed Message</label>
+              <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 py-2 px-3 text-sm" id="rankingClosedMessage" type="text" placeholder="This page has been closed. 마지막까지 최선을 다해 주세요!" />
+            </div>
+            <button class="w-full bg-indigo-600 text-white font-headline text-sm px-5 py-2.5 rounded-sm hover:shadow-lg transition-all active:scale-95" id="rankingScheduleBtn" type="button">Save Schedule</button>
+            <button class="w-full bg-slate-500 text-white font-headline text-sm px-5 py-2.5 rounded-sm hover:shadow-lg transition-all active:scale-95" id="rankingScheduleResetBtn" type="button">Reset Schedule</button>
+            <button class="w-full bg-red-500 text-white font-headline text-sm px-5 py-2.5 rounded-sm hover:shadow-lg transition-all active:scale-95" id="rankingToggleBtn" type="button">Close Rankings</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="panel admin-panel" id="adminPanel">
-      <div class="panel-header">
-        <div class="panel-title">Users</div>
-        <div class="panel-actions">
-          <div class="admin-setting">
-            <span class="small">User instance limit</span>
-            <input id="userInstanceLimitInput" class="admin-input" type="number" min="0" step="1" />
-            <button class="btn btn-ghost" id="saveUserInstanceLimitBtn" type="button">Save</button>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+      <div class="md:col-span-5 bg-surface-container-lowest p-6 rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.02)]">
+        <div class="flex justify-between items-start mb-6">
+          <div>
+            <h3 class="font-headline font-bold text-sm uppercase tracking-widest text-slate-400">Users</h3>
+            <p class="text-3xl font-headline font-bold mt-1" id="adminUserCount">0</p>
           </div>
-          <span id="adminMessage" class="admin-message small"></span>
-          <button class="btn btn-ghost" id="refreshUsersBtn" type="button">Refresh Users</button>
-          <button class="btn btn-danger" id="resetScoreboardBtn" type="button">Reset Scoreboard</button>
+          <span class="material-symbols-outlined text-indigo-600 bg-indigo-50 p-2 rounded-sm">group</span>
+        </div>
+        <div class="flex items-center gap-4 text-sm text-slate-500">
+          <span id="adminActiveSessions">0 active users</span>
         </div>
       </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
+      <div class="md:col-span-7 bg-surface-container-lowest p-6 rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.02)] flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h3 class="font-headline font-bold text-sm uppercase tracking-widest text-slate-400">User Instance Limit</h3>
+          <p class="text-slate-500 text-sm mt-1">Set the maximum active challenges per user.</p>
+          <div id="adminMessage" class="admin-message text-sm mt-3"></div>
+        </div>
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <div class="relative flex-1 md:w-32">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 text-center font-headline text-lg py-2 transition-colors" id="userInstanceLimitInput" type="number" min="0" step="1" />
+          </div>
+          <button class="bg-indigo-600 text-white font-headline text-sm px-6 py-2.5 rounded-sm hover:shadow-lg transition-all active:scale-95" id="saveUserInstanceLimitBtn" type="button">Save</button>
+          <button class="bg-surface-container-high px-4 py-2.5 rounded-sm text-xs font-bold hover:bg-primary hover:text-white transition-all" id="refreshUsersBtn" type="button">Refresh</button>
+          <button class="bg-red-50 text-red-600 px-4 py-2.5 rounded-sm text-xs font-bold hover:bg-red-100 transition-all" id="resetScoreboardBtn" type="button">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="bg-surface-container-lowest rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.04)] overflow-hidden mb-8">
+      <div class="p-6 border-b border-surface-container">
+        <h2 class="font-headline font-bold text-lg">Pending Approvals</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left admin-table">
+          <thead class="bg-surface-container-low">
             <tr>
-              <th>User</th>
-              <th>Role</th>
-              <th>Score</th>
-              <th>Solved</th>
-              <th>Actions</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">User</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Status</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Created</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody id="adminUserBody">
+          <tbody class="divide-y divide-surface-container" id="adminPendingBody">
+            <tr><td class="px-6 py-8 text-slate-400 text-center" colspan="4">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="bg-surface-container-lowest rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.04)] overflow-hidden admin-link" id="adminPanel">
+      <div class="p-6 border-b border-surface-container">
+        <h2 class="font-headline font-bold text-lg">User Directory</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left admin-table">
+          <thead class="bg-surface-container-low">
             <tr>
-              <td class="admin-empty" colspan="5">Loading...</td>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">User</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Status</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Role</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Score</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Solved</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Instance</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500 text-right">Actions</th>
             </tr>
+          </thead>
+          <tbody class="divide-y divide-surface-container" id="adminUserBody">
+            <tr><td class="px-6 py-8 text-slate-400 text-center" colspan="7">Loading...</td></tr>
           </tbody>
         </table>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    HexaCTF © 2026
-  </footer>
+  <script src="/static/js/app-core.js?v=1776019819"></script>
+  <script src="/static/js/app-auth.js?v=1776019819"></script>
+  <script src="/static/js/app-admin.js?v=1776019819"></script>
+  <script src="/static/js/app-router.js?v=1776019819"></script>
+  <script src="/static/js/app-main.js?v=1776019819"></script>
 
-  <script src="/static/js/app-core.js"></script>
-  <script src="/static/js/app-auth.js"></script>
-  <script src="/static/js/app-admin.js"></script>
-  <script src="/static/js/app-router.js"></script>
-  <script src="/static/js/app-main.js"></script>
+  <div class="admin-confirm-modal hidden" id="adminConfirmModal" aria-hidden="true">
+    <div class="password-modal-backdrop" data-action="close-admin-confirm"></div>
+    <div class="password-modal-dialog max-w-md">
+      <button class="password-modal-close" type="button" data-action="close-admin-confirm" aria-label="Close">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3 class="font-headline text-lg font-bold tracking-tight text-on-background mb-4">한 번 더 확인해 주세요</h3>
+      <p class="text-sm text-slate-500 mb-6" id="adminConfirmMessage">이 작업을 진행하시겠습니까?</p>
+      <div class="flex gap-3 justify-end">
+        <button class="bg-surface-container-high px-4 py-2.5 rounded-sm text-xs font-bold hover:bg-surface-container-highest transition-all" id="adminConfirmCancelBtn" type="button">No</button>
+        <button class="bg-red-500 text-white px-4 py-2.5 rounded-sm text-xs font-bold hover:bg-red-600 transition-all" id="adminConfirmOkBtn" type="button">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="password-modal hidden" id="passwordChangeModal" aria-hidden="true">
+    <div class="password-modal-backdrop" data-action="close-password-modal"></div>
+    <div class="password-modal-dialog">
+      <button class="password-modal-close" type="button" data-action="close-password-modal" aria-label="Close">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3 class="font-headline text-lg font-bold tracking-tight text-on-background mb-6">비밀번호 변경</h3>
+      <form id="passwordChangeForm" class="space-y-5" novalidate>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">현재 비밀번호</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcCurrentPassword" type="password" autocomplete="current-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcCurrentPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcCurrentCapsMessage" class="capslock-message"></div>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcNewPassword" type="password" autocomplete="new-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcNewPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcNewCapsMessage" class="capslock-message"></div>
+          <div class="password-strength" aria-live="polite">
+            <div class="password-strength-bar"><div id="pcStrengthFill" class="password-strength-fill"></div></div>
+            <div id="pcStrengthText" class="password-strength-text">강도: -</div>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">8자+</p>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호 확인</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcConfirmPassword" type="password" autocomplete="new-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcConfirmPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcConfirmCapsMessage" class="capslock-message"></div>
+        </div>
+        <div id="pcMessage" class="text-sm min-h-[18px]"></div>
+        <button class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-3 font-bold tracking-[0.15em] text-xs hover:shadow-[0_8px_20px_rgba(53,37,205,0.2)] active:scale-95 transition-all" type="submit">비밀번호 변경</button>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

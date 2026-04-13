@@ -24,3 +24,11 @@ instances.json
 
 # OS noise
 .DS_Store
+
+# Logs
+uvicorn.log
+*.log
+
+# Env
+.env
+

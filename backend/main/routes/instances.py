@@ -58,6 +58,7 @@ def start(req: models.StartRequest, request: Request):
         "instance_id": result["instance_id"],
         "problem": result["problem"],
         "title": result["title"],
+        "access_mode": result.get("access_mode"),
         "url": url,
     }
 
@@ -85,6 +86,7 @@ def list_instances_route(request: Request):
             "problem": inst.get("problem"),
             "title": inst.get("title"),
             "status": inst.get("status"),
+            "access_mode": inst.get("access_mode"),
             "url": url,
         }
         if user.get("role") == "admin":

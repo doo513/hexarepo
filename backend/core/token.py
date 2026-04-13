@@ -55,12 +55,14 @@ def _b64decode(data: str) -> bytes:
     return base64.urlsafe_b64decode(data + pad)
 
 
-def create_access_token(username: str, role: str, ttl: int = DEFAULT_TTL) -> str:
+def create_access_token(username: str, role: str, ttl: int = DEFAULT_TTL, session_nonce: str | None = None) -> str:
     payload = {
         "sub": username,
         "role": role,
         "exp": int(time.time()) + int(ttl),
     }
+    if session_nonce:
+        payload["sn"] = str(session_nonce)
     body = _b64encode(json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
     secret = _get_secret()
     sig = hmac.new(secret.encode("utf-8"), body.encode("utf-8"), hashlib.sha256).hexdigest()

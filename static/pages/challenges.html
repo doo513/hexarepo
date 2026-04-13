@@ -1,64 +1,248 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html class="light" lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>HexaCTF - Challenges</title>
-  <link rel="stylesheet" href="/static/css/base.css" />
-  <link rel="stylesheet" href="/static/css/layout.css" />
-  <link rel="stylesheet" href="/static/css/components.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+    (() => {
+      const theme = localStorage.getItem("hexactf_theme") || "light";
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'surface-variant': '#e1e3e4', 'surface-dim': '#d9dadb', 'surface-tint': '#4d44e3', 'on-secondary-container': '#454386',
+            'tertiary-fixed': '#ffdbcc', 'on-background': '#191c1d', 'tertiary-fixed-dim': '#ffb695', 'secondary-fixed-dim': '#c3c0ff',
+            'surface-container': '#edeeef', 'inverse-surface': '#2e3132', 'on-error-container': '#93000a', 'surface-container-low': '#f3f4f5',
+            'surface': '#f8f9fa', 'primary-fixed-dim': '#c3c0ff', 'inverse-on-surface': '#f0f1f2', 'on-surface-variant': '#464555',
+            'on-primary-fixed-variant': '#3323cc', 'on-primary-container': '#dad7ff', 'secondary-container': '#b6b4ff', 'outline': '#777587',
+            'on-surface': '#191c1d', 'on-tertiary-container': '#ffd2be', 'background': '#f8f9fa', 'on-primary-fixed': '#0f0069',
+            'primary-container': '#4f46e5', 'error-container': '#ffdad6', 'on-secondary-fixed-variant': '#413f82', 'on-tertiary-fixed': '#351000',
+            'tertiary-container': '#a44100', 'secondary-fixed': '#e2dfff', 'tertiary': '#7e3000', 'surface-container-lowest': '#ffffff',
+            'secondary': '#58579b', 'error': '#ba1a1a', 'surface-container-high': '#e7e8e9', 'primary-fixed': '#e2dfff', 'on-tertiary': '#ffffff',
+            'on-secondary': '#ffffff', 'primary': '#3525cd', 'surface-container-highest': '#e1e3e4', 'on-secondary-fixed': '#140f54',
+            'on-primary': '#ffffff', 'outline-variant': '#c7c4d8', 'inverse-primary': '#c3c0ff', 'on-tertiary-fixed-variant': '#7b2f00',
+            'surface-bright': '#f8f9fa'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="/static/css/stitch-ui.css" />
 </head>
-
-<body data-page="challenges">
-  <header class="topbar">
-    <div class="logo">HexaCTF</div>
-    <nav class="nav">
-      <a class="nav-link active" href="/challenges" data-page="challenges">Challenges</a>
-      <a class="nav-link" href="/scoreboard" data-page="scoreboard">Scoreboard</a>
-      <a class="nav-link admin-link hidden" href="/admin" data-page="admin">Admin</a>
-    </nav>
-    <div class="topbar-right">
-      <div class="user-pill" id="currentUser">Guest</div>
-      <button class="btn btn-ghost" id="logoutTopBtn" type="button">Logout</button>
+<body class="route-pending bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container" data-page="challenges">
+  <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex justify-between items-center px-8 h-16">
+    <div class="flex items-center gap-8">
+      <span class="brand-title text-xl font-black tracking-tighter text-indigo-700">HackerLogin CTF</span>
+      <div class="hidden md:flex gap-6">
+        <a class="nav-link text-slate-500 hover:text-indigo-500 transition-colors duration-200 active" href="/challenges" data-page="challenges">Challenges</a>
+        <a class="nav-link text-slate-500 hover:text-indigo-500 transition-colors duration-200" href="/scoreboard" data-page="scoreboard">Rankings</a>
+        <a class="nav-link admin-link hidden text-slate-500 hover:text-indigo-500 transition-colors duration-200" href="/admin" data-page="admin">Admin</a>
+      </div>
     </div>
-  </header>
+    <div class="flex items-center gap-4">
+      <span class="material-symbols-outlined text-indigo-600 cursor-pointer account-circle-parent" title="비밀번호 변경">account_circle</span>
+      <div class="user-pill cursor-pointer" id="currentUser" title="비밀번호 변경">Guest</div>
+      <button class="bg-indigo-600 text-white text-[10px] font-bold tracking-[0.16em] uppercase px-4 py-2 rounded-sm active:scale-95 transition-transform" id="logoutTopBtn" type="button">Logout</button>
+    </div>
+  </nav>
 
-  <main class="container">
-    <section class="hero">
-      <div>
-        <h1>Challenges</h1>
-        <p>Let's solve some challenges!</p>
+  <aside class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-50 flex flex-col py-6 px-4 space-y-2 hidden lg:flex">
+    <div class="px-8 mb-5">
+      <p class="tracking-widest text-[10px] font-bold uppercase text-slate-400">The Atelier</p>
+      <h2 class="font-headline text-lg font-black text-indigo-600">Challenge Board</h2>
+    </div>
+    <nav class="flex flex-col gap-1">
+      <a class="side-link active flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/challenges"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="side-link-label uppercase text-xs tracking-widest">Challenges</span></a>
+      <a class="side-link flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/scoreboard"><span class="material-symbols-outlined text-[20px]">leaderboard</span><span class="side-link-label uppercase text-xs tracking-widest">Rankings</span></a>
+      <div class="px-4 pt-5 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Category</div>
+      <div class="flex flex-col gap-1" id="sidebarCategoryNav"></div>
+      <a class="side-link admin-link hidden flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/admin"><span class="material-symbols-outlined text-[20px]">shield</span><span class="side-link-label uppercase text-xs tracking-widest">Admin</span></a>
+    </nav>
+  </aside>
+
+  <main class="pt-24 pb-16 pl-0 md:pl-64 bg-surface min-h-screen">
+        <div class="hidden" id="challengesClosedOverlay">
+      <div class="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+        <span class="material-symbols-outlined text-[80px] text-slate-300 mb-6">lock</span>
+        <h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface mb-4" id="closedMessageTitle">CTF 문제를 아직 확인할 수 없습니다</h2>
+        <p class="text-slate-500 text-lg" id="closedMessageSub"></p>
+        <div class="mt-8 hidden" id="countdownWrap">
+          <p class="text-sm text-slate-400 uppercase tracking-widest font-bold mb-3">공개까지 남은 시간</p>
+          <div class="font-headline text-6xl font-black tracking-tight text-indigo-600 tabular-nums" id="countdownTimer">00:00:00</div>
+          <p class="mt-3 text-sm text-slate-400" id="countdownTargetTime"></p>
+        </div>
       </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-6 lg:px-8" id="challengesContentWrap">
+      <header class="mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-slate-200 pb-8">
+          <div>
+            <span class="uppercase tracking-[0.2em] text-[10px] font-bold text-indigo-600 block mb-2">Curated Challenges</span>
+            <div class="flex items-center gap-3 flex-wrap">
+              <h1 class="text-5xl font-black font-headline tracking-tighter text-on-background">HackerLogin Challenges</h1>
+              <span class="badge-visibility hidden text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" data-badge="challenges"></span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="font-headline text-sm font-bold text-slate-400" id="challengeProgressLabel">문제 풀이 현황</p>
+            <div class="flex items-center gap-4 mt-2">
+              <span class="text-3xl font-black font-headline text-indigo-700" id="challengeProgressValue">0/0</span>
+              <div class="w-48 h-2 bg-slate-200 overflow-hidden"><div class="bg-indigo-600 h-full w-0 transition-all duration-300" id="challengeProgressBar"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-8 flex flex-col gap-6">
+          <div class="flex items-center gap-6">
+            <span class="font-headline text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 min-w-[100px]">Category</span>
+            <div class="flex flex-wrap gap-2" id="filters"></div>
+          </div>
+          <div class="flex items-center gap-6">
+            <span class="font-headline text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 min-w-[100px]">Search</span>
+            <div class="w-full max-w-lg bg-slate-100 rounded px-3 py-2 flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm text-slate-400">search</span>
+              <input class="bg-transparent border-none focus:ring-0 text-[11px] font-bold uppercase tracking-widest w-full p-0" id="searchInput" placeholder="Find challenge title or keyword" type="text" />
+            </div>
+          </div>
+        </div>
+      </header>
 
-    </section>
-
-    <section class="toolbar">
-      <div class="filters" id="filters">
-        <button class="filter active" data-cat="all">All</button>
-        <button class="filter" data-cat="pwn">PWN</button>
-        <button class="filter" data-cat="web">WEB</button>
-        <button class="filter" data-cat="rev">REV</button>
-        <button class="filter" data-cat="crypto">CRYPTO</button>
-      </div>
-
-      <div class="search">
-        <input id="searchInput" type="text" placeholder="Search title / key..." />
-      </div>
-    </section>
-
-    <section class="grid" id="grid">
-      <!-- JS 렌더링 -->
-    </section>
+      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="grid"></section>
+    </div>
   </main>
 
-  <footer class="footer">
-    HexaCTF © 2026
-  </footer>
+  <div class="challenge-detail-modal hidden" id="challengeDetailModal" aria-hidden="true">
+    <div class="challenge-detail-backdrop" data-action="close-detail"></div>
+    <div class="challenge-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <button class="challenge-detail-close" type="button" data-action="close-detail" aria-label="Close challenge detail">
+        <span class="material-symbols-outlined">close</span>
+      </button>
 
-  <script src="/static/js/app-core.js"></script>
-  <script src="/static/js/app-auth.js"></script>
-  <script src="/static/js/app-challenges.js"></script>
-  <script src="/static/js/app-router.js"></script>
-  <script src="/static/js/app-main.js"></script>
+      <div class="challenge-detail-content">
+        <div class="challenge-detail-header">
+          <div class="flex items-center gap-2 flex-wrap">
+            <div class="detail-chip" id="detailCategory">MISC</div>
+            <div class="detail-chip detail-chip-muted" id="detailDifficulty">BEGINNER</div>
+            <div class="detail-points" id="detailPoints">0 PTS</div>
+          </div>
+          <h2 class="detail-title" id="detailTitle">Challenge</h2>
+          <div class="detail-meta-row">
+            <div class="detail-meta-item"><span class="material-symbols-outlined">check_circle</span><span id="detailSolves">0 Solves</span></div>
+          </div>
+        </div>
+
+        <section class="space-y-4 detail-section-tight">
+          <h3 class="detail-section-title detail-section-title-lg">문제 설명</h3>
+          <p class="detail-description" id="detailDescription">No description.</p>
+        </section>
+
+        <section class="space-y-2 detail-section-tight" id="detailDownloadsWrap">
+          <div class="flex flex-wrap gap-2" id="detailDownloads"></div>
+        </section>
+
+        <section class="space-y-3">
+          <button class="detail-primary-btn" type="button" data-action="start-detail" id="detailStartBtn">
+            <span class="material-symbols-outlined">terminal</span>
+            <span>Start Instance</span>
+          </button>
+          <button class="detail-ghost-btn detail-ghost-btn-danger" type="button" data-action="stop-detail" id="detailStopBtn">서버 종료하기</button>
+          <div class="detail-instance-box">
+            <div class="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <div class="detail-small-label">Instance ID</div>
+                <div class="detail-mono" id="detailInstanceId">-</div>
+              </div>
+              <button class="detail-mini-btn detail-copy-btn" type="button" data-action="copy-detail-url" data-tooltip="클릭하여 주소 복사" id="detailCopyBtn">주소 복사</button>
+            </div>
+            <div>
+              <div class="detail-small-label">웹해킹 문제</div>
+              <a class="detail-mono detail-link break-all" id="detailInstanceUrl" href="#" target="_blank" rel="noreferrer">-</a>
+            </div>
+            <div class="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <div class="detail-small-label">시스템 해킹 문제</div>
+                <div class="detail-mono break-all" id="detailConnectHint">-</div>
+              </div>
+              <button class="detail-mini-btn detail-copy-btn" type="button" data-action="copy-detail-connect" data-tooltip="클릭하여 주소 복사" id="detailCopyConnectBtn">주소 복사</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="detail-flag-box">
+          <label class="detail-section-title" for="detailFlagInput">Submit Flag</label>
+          <div class="flex gap-2">
+            <input class="detail-flag-input" id="detailFlagInput" placeholder="2026HL{...}" type="text" />
+            <button class="detail-submit-btn" type="button" data-action="submit-detail-flag">Submit</button>
+          </div>
+          <div class="flag-message text-[11px] mt-2" id="detailFlagMessage"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app-core.js?v=1776019819"></script>
+  <script src="/static/js/app-auth.js?v=1776019819"></script>
+  <script src="/static/js/app-challenges.js?v=1776019819"></script>
+  <script src="/static/js/app-router.js?v=1776019819"></script>
+  <script src="/static/js/app-main.js?v=1776019819"></script>
+
+  <div class="password-modal hidden" id="passwordChangeModal" aria-hidden="true">
+    <div class="password-modal-backdrop" data-action="close-password-modal"></div>
+    <div class="password-modal-dialog">
+      <button class="password-modal-close" type="button" data-action="close-password-modal" aria-label="Close">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3 class="font-headline text-lg font-bold tracking-tight text-on-background mb-6">비밀번호 변경</h3>
+      <form id="passwordChangeForm" class="space-y-5" novalidate>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">현재 비밀번호</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcCurrentPassword" type="password" autocomplete="current-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcCurrentPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcCurrentCapsMessage" class="capslock-message"></div>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcNewPassword" type="password" autocomplete="new-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcNewPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcNewCapsMessage" class="capslock-message"></div>
+          <div class="password-strength" aria-live="polite">
+            <div class="password-strength-bar"><div id="pcStrengthFill" class="password-strength-fill"></div></div>
+            <div id="pcStrengthText" class="password-strength-text">강도: -</div>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">8자+</p>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호 확인</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcConfirmPassword" type="password" autocomplete="new-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcConfirmPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcConfirmCapsMessage" class="capslock-message"></div>
+        </div>
+        <div id="pcMessage" class="text-sm min-h-[18px]"></div>
+        <button class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-3 font-bold tracking-[0.15em] text-xs hover:shadow-[0_8px_20px_rgba(53,37,205,0.2)] active:scale-95 transition-all" type="submit">비밀번호 변경</button>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

@@ -29,6 +29,13 @@ def challenges_page():
     return HTMLResponse(_read_page("challenges.html"))
 
 
+@router.get("/challenges/{problem_key}")
+def challenge_detail_page(problem_key: str):
+    # Keep server-side routing compatible with detail-page deep links.
+    _ = problem_key
+    return HTMLResponse(_read_page("challenges.html"))
+
+
 @router.get("/scoreboard")
 def scoreboard_page():
     return HTMLResponse(_read_page("scoreboard.html"))

@@ -1,81 +1,215 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html class="light" lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>HexaCTF - Login</title>
-  <link rel="stylesheet" href="/static/css/base.css" />
-  <link rel="stylesheet" href="/static/css/layout.css" />
-  <link rel="stylesheet" href="/static/css/components.css" />
-  <link rel="stylesheet" href="/static/css/auth.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+    (() => {
+      const theme = localStorage.getItem("hexactf_theme") || "light";
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'surface-variant': '#e1e3e4', 'surface-dim': '#d9dadb', 'surface-tint': '#4d44e3', 'on-secondary-container': '#454386',
+            'tertiary-fixed': '#ffdbcc', 'on-background': '#191c1d', 'tertiary-fixed-dim': '#ffb695', 'secondary-fixed-dim': '#c3c0ff',
+            'surface-container': '#edeeef', 'inverse-surface': '#2e3132', 'on-error-container': '#93000a', 'surface-container-low': '#f3f4f5',
+            'surface': '#f8f9fa', 'primary-fixed-dim': '#c3c0ff', 'inverse-on-surface': '#f0f1f2', 'on-surface-variant': '#464555',
+            'on-primary-fixed-variant': '#3323cc', 'on-primary-container': '#dad7ff', 'secondary-container': '#b6b4ff', 'outline': '#777587',
+            'on-surface': '#191c1d', 'on-tertiary-container': '#ffd2be', 'background': '#f8f9fa', 'on-primary-fixed': '#0f0069',
+            'primary-container': '#4f46e5', 'error-container': '#ffdad6', 'on-secondary-fixed-variant': '#413f82', 'on-tertiary-fixed': '#351000',
+            'tertiary-container': '#a44100', 'secondary-fixed': '#e2dfff', 'tertiary': '#7e3000', 'surface-container-lowest': '#ffffff',
+            'secondary': '#58579b', 'error': '#ba1a1a', 'surface-container-high': '#e7e8e9', 'primary-fixed': '#e2dfff', 'on-tertiary': '#ffffff',
+            'on-secondary': '#ffffff', 'primary': '#3525cd', 'surface-container-highest': '#e1e3e4', 'on-secondary-fixed': '#140f54',
+            'on-primary': '#ffffff', 'outline-variant': '#c7c4d8', 'inverse-primary': '#c3c0ff', 'on-tertiary-fixed-variant': '#7b2f00',
+            'surface-bright': '#f8f9fa'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="/static/css/stitch-ui.css" />
 </head>
-
-<body data-page="login">
-  <header class="topbar">
-    <div class="logo">HexaCTF</div>
-    <div class="topbar-right">
-      <div class="user-pill" id="currentUser">Guest</div>
-    </div>
-  </header>
-
-  <main class="container">
-    <section class="hero">
-      <div>
-        <h1>Login</h1>
-        <p>Sign in to access challenges and scoreboard.</p>
-      </div>
-    </section>
-
-    <section class="panel auth-panel">
-      <div class="panel-header">
-        <div class="panel-title">Account</div>
-      </div>
-      <div class="auth-wrap">
-        <div class="auth-tabs">
-          <button class="auth-tab active" type="button" data-auth="login">Login</button>
-          <button class="auth-tab" type="button" data-auth="register">Register</button>
+<body class="bg-surface font-body text-on-surface selection:bg-primary/20" data-page="login">
+  <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(53,37,205,0.04)]">
+    <div class="flex justify-between items-center h-16 px-6 lg:px-8 w-full mx-auto">
+      <div class="flex items-center gap-8">
+      <span class="brand-title text-xl font-black tracking-tighter text-indigo-700">HackerLogin CTF</span>
+        <div class="hidden md:flex items-center space-x-8">
+          <a class="nav-link text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-[0.1em] text-xs font-bold" href="/challenges" data-page="challenges">Challenges</a>
+          <a class="nav-link auth-link hidden text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-[0.1em] text-xs font-bold" href="/scoreboard" data-page="scoreboard" data-auth-link="user">Rankings</a>
+          <a class="nav-link admin-link hidden text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-[0.1em] text-xs font-bold" href="/admin" data-page="admin" data-auth-link="user" data-auth-role="admin">Admin</a>
         </div>
-
-        <div id="authMessage" class="auth-message"></div>
-
-        <form id="loginForm" class="auth-form active">
-          <label class="auth-field">
-            <span class="auth-label">Username</span>
-            <input name="username" type="text" placeholder="ID" autocomplete="username" required />
-          </label>
-          <label class="auth-field">
-            <span class="auth-label">Password</span>
-            <input name="password" type="password" placeholder="Password" autocomplete="current-password" required />
-          </label>
-          <button class="btn" type="submit">Login</button>
-        </form>
-
-        <form id="registerForm" class="auth-form">
-          <label class="auth-field">
-            <span class="auth-label">Username</span>
-            <input name="username" type="text" placeholder="hacker123" autocomplete="username" required />
-          </label>
-          <label class="auth-field">
-            <span class="auth-label">Password</span>
-            <input name="password" type="password" placeholder="Create a password" autocomplete="new-password" required />
-          </label>
-          <label class="auth-field">
-            <span class="auth-label">Display Name</span>
-            <input name="display_name" type="text" placeholder="Display name" autocomplete="nickname" />
-          </label>
-          <button class="btn" type="submit">Create Account</button>
-        </form>
       </div>
-    </section>
+      <div class="flex items-center gap-3 lg:gap-4">
+        <span class="material-symbols-outlined text-slate-500 hidden sm:inline">notifications</span>
+        <span class="material-symbols-outlined text-slate-500 hidden sm:inline">settings</span>
+        <span class="material-symbols-outlined text-indigo-600 cursor-pointer account-circle-parent" title="비밀번호 변경">account_circle</span>
+        <div class="user-pill cursor-pointer" id="currentUser" title="비밀번호 변경">Guest</div>
+      </div>
+    </div>
+  </nav>
+
+  <aside class="h-[calc(100vh-4rem)] w-64 fixed left-0 top-16 bg-slate-50 flex flex-col py-7 gap-y-2 border-r border-slate-100 z-40 hidden lg:flex">
+    <div class="px-8 mb-5">
+      <p class="tracking-widest text-[10px] font-bold uppercase text-slate-400">The Atelier</p>
+      <h2 class="font-headline text-lg font-black text-indigo-600">Access Portal</h2>
+    </div>
+    <nav class="flex flex-col gap-1">
+      <a class="side-link active flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/login"><span class="material-symbols-outlined text-[20px]">verified_user</span><span class="side-link-label uppercase text-xs tracking-widest">Authenticate</span></a>
+      <a class="side-link flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="#"><span class="material-symbols-outlined text-[20px]">vpn_key</span><span class="side-link-label uppercase text-xs tracking-widest">Credentials</span></a>
+      <a class="side-link flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="#"><span class="material-symbols-outlined text-[20px]">shield</span><span class="side-link-label uppercase text-xs tracking-widest">Security</span></a>
+    </nav>
+  </aside>
+
+  <main class="min-h-screen flex flex-col items-center justify-center px-4 pt-20 lg:pl-64 bg-surface relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none opacity-40">
+      <div class="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-primary/5 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-[-5%] left-[-10%] w-[35rem] h-[35rem] bg-secondary/5 rounded-full blur-3xl"></div>
+    </div>
+    <div class="w-full max-w-md relative z-10">
+      <div class="text-center mb-10">
+                <h1 class="font-headline text-4xl font-bold tracking-tight text-on-surface mb-2">HackerLogin CTF</h1>
+        <p class="text-on-surface-variant text-sm font-light">30기 신입생 선발</p>
+      </div>
+      <div class="bg-surface-container-lowest shadow-[0_20px_40px_rgba(53,37,205,0.04)] overflow-hidden">
+        <div class="flex bg-surface-container-low">
+          <button class="auth-tab flex-1 py-4 text-sm font-bold tracking-widest text-on-surface-variant" type="button" data-auth="login">SIGN IN</button>
+          <button class="auth-tab flex-1 py-4 text-sm font-bold tracking-widest text-on-surface-variant" type="button" data-auth="register">REGISTER</button>
+        </div>
+        <div class="p-10">
+          <div id="authMessage" class="auth-message text-sm text-slate-500 mb-4"></div>
+
+          <div id="authUserPanel" class="hidden mt-0 mb-6 rounded-lg bg-surface-container-low p-5">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-[0.65rem] uppercase tracking-[0.2em] text-slate-400">Authenticated User</div>
+                <div id="authUserName" class="font-headline text-xl font-bold text-on-surface">-</div>
+              </div>
+              <div id="authUserRole" class="px-2 py-1 rounded-sm bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider">user</div>
+            </div>
+            <button id="logoutBtn" class="mt-4 w-full bg-surface-container-high px-4 py-3 text-xs font-bold tracking-[0.16em] text-on-surface hover:bg-surface-container-highest transition-colors" type="button">LOGOUT</button>
+          </div>
+
+          <form id="loginForm" class="auth-form space-y-8">
+            <div class="space-y-1">
+              <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">ID</label>
+              <div class="relative">
+                <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 text-sm" name="username" placeholder="Username" type="text" autocomplete="username" required />
+                <span class="absolute right-0 top-3 material-symbols-outlined text-outline text-lg">alternate_email</span>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">PASSWORD</label>
+                <span class="text-[0.6rem] uppercase tracking-wider text-primary">Forgot Access?</span>
+              </div>
+              <div class="relative">
+                <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 text-sm" name="password" placeholder="" type="password" autocomplete="current-password" required />
+                <span class="absolute right-0 top-3 material-symbols-outlined text-outline text-lg">lock</span>
+              </div>
+            </div>
+            <button class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-4 font-bold tracking-[0.15em] text-xs hover:shadow-[0_8px_20px_rgba(53,37,205,0.2)] hover:-translate-y-0.5 active:scale-95 transition-all" type="submit">JOIN THE CLUB</button>
+          </form>
+
+          <form id="registerForm" class="auth-form space-y-8" novalidate>
+            <div class="space-y-1">
+              <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">New Username</label>
+              <div class="relative">
+                <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 text-sm" name="username" placeholder="hacker123" type="text" autocomplete="username" required />
+                <span class="absolute right-0 top-3 material-symbols-outlined text-outline text-lg">badge</span>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">Create Password</label>
+              <div class="password-input-wrap">
+                <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="registerPassword" name="password" placeholder="8자+" type="password" autocomplete="new-password" required />
+                <button class="password-eye-btn" type="button" data-toggle-password="registerPassword" aria-label="비밀번호 보기 전환">
+                  <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                </button>
+              </div>
+              <div class="password-strength" id="registerStrength" aria-live="polite">
+                <div class="password-strength-bar"><div id="registerStrengthFill" class="password-strength-fill"></div></div>
+                <div id="registerStrengthText" class="password-strength-text">강도: -</div>
+              </div>
+              <div id="registerCapsMessage" class="capslock-message"></div>
+            </div>
+            <div class="space-y-1">
+              <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">Display Name</label>
+              <div class="relative">
+                <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 text-sm" name="display_name" placeholder="Display name" type="text" autocomplete="nickname" />
+                <span class="absolute right-0 top-3 material-symbols-outlined text-outline text-lg">signature</span>
+              </div>
+            </div>
+            <button class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-4 font-bold tracking-[0.15em] text-xs hover:shadow-[0_8px_20px_rgba(53,37,205,0.2)] hover:-translate-y-0.5 active:scale-95 transition-all" type="submit">MAKE ACCOUNT</button>
+          </form>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <footer class="footer">
-    HexaCTF © 2026
-  </footer>
+  <script src="/static/js/app-core.js?v=1776019819"></script>
+  <script src="/static/js/app-auth.js?v=1776019819"></script>
+  <script src="/static/js/app-router.js?v=1776019819"></script>
+  <script src="/static/js/app-main.js?v=1776019819"></script>
 
-  <script src="/static/js/app-core.js"></script>
-  <script src="/static/js/app-auth.js"></script>
-  <script src="/static/js/app-router.js"></script>
-  <script src="/static/js/app-main.js"></script>
+  <div class="password-modal hidden" id="passwordChangeModal" aria-hidden="true">
+    <div class="password-modal-backdrop" data-action="close-password-modal"></div>
+    <div class="password-modal-dialog">
+      <button class="password-modal-close" type="button" data-action="close-password-modal" aria-label="Close">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <h3 class="font-headline text-lg font-bold tracking-tight text-on-background mb-6">비밀번호 변경</h3>
+      <form id="passwordChangeForm" class="space-y-5" novalidate>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">현재 비밀번호</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcCurrentPassword" type="password" autocomplete="current-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcCurrentPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcCurrentCapsMessage" class="capslock-message"></div>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcNewPassword" type="password" autocomplete="new-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcNewPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcNewCapsMessage" class="capslock-message"></div>
+          <div class="password-strength" aria-live="polite">
+            <div class="password-strength-bar"><div id="pcStrengthFill" class="password-strength-fill"></div></div>
+            <div id="pcStrengthText" class="password-strength-text">강도: -</div>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">8자+</p>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호 확인</label>
+          <div class="password-input-wrap">
+            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcConfirmPassword" type="password" autocomplete="new-password" required />
+            <button class="password-eye-btn" type="button" data-toggle-password="pcConfirmPassword" aria-label="비밀번호 보기 전환">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div id="pcConfirmCapsMessage" class="capslock-message"></div>
+        </div>
+        <div id="pcMessage" class="text-sm min-h-[18px]"></div>
+        <button class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-3 font-bold tracking-[0.15em] text-xs hover:shadow-[0_8px_20px_rgba(53,37,205,0.2)] active:scale-95 transition-all" type="submit">비밀번호 변경</button>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

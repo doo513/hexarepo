@@ -8,6 +8,7 @@ from .routes.challenges import router as challenges_router
 from .routes.instances import router as instances_router
 from .routes.pages import router as pages_router
 from .routes.scoreboard import router as scoreboard_router
+from .routes.visibility import router as visibility_router
 from ..core.config import STATIC_DIR
 
 app = FastAPI()
@@ -26,3 +27,4 @@ app.include_router(admin_router)
 app.include_router(challenges_router)
 app.include_router(instances_router)
 app.include_router(scoreboard_router)
+app.include_router(visibility_router)
