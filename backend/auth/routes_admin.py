@@ -9,6 +9,7 @@ from ..core import models
 from ..core.config import CHALLENGE_FILE
 from ..main.instance_store import ACTIVE_INSTANCE_STATUSES, list_instances_snapshot, remove_instance, try_mark_stopping
 from ..main.instances_service import _stop_container
+from ..main.dynamic_flags import cleanup_runtime_flag_file
 from ..main.settings_service import get_ranking_settings, get_user_instance_limit, set_ranking_open, set_user_instance_limit, get_challenges_settings, set_challenges_visibility, set_ranking_schedule, is_challenges_visible, is_ranking_visible
 
 router = APIRouter()
@@ -326,6 +327,7 @@ def admin_reclaim_instances(request: Request, body: models.ReclaimRequest = mode
             _stop_container(container_name)
         except Exception as exc:
             failed.append({"instance_id": iid, "reason": f"stop error: {exc}"})
+        cleanup_runtime_flag_file(iid)
         remove_instance(iid)
         reclaimed.append({"instance_id": iid, "owner": inst.get("owner"), "problem": inst.get("problem")})
 
@@ -334,4 +336,3 @@ def admin_reclaim_instances(request: Request, body: models.ReclaimRequest = mode
         "reclaimed": reclaimed,
         "failed": failed,
     }
-

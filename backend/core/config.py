@@ -38,3 +38,4 @@ SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
 # Auth / token storage
 USERS_FILE = os.path.join(DATA_DIR, "users.json")
 SECRET_FILE = os.path.join(DATA_DIR, "secret.key")
+FLAG_SECRET_FILE = os.path.join(DATA_DIR, "flag_secret.key")

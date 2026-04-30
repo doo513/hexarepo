@@ -33,7 +33,15 @@ def _sanitize_docker_name(raw: str) -> str:
     return normalized or "challenge"
 
 
-def deploy(problem_dir, instanceid, port=None, name_prefix=None, host_port_range=None):
+def deploy(
+    problem_dir,
+    instanceid,
+    port=None,
+    name_prefix=None,
+    host_port_range=None,
+    environment=None,
+    volumes=None,
+):
     try:
         import docker
         from docker.errors import DockerException, APIError
@@ -77,6 +85,8 @@ def deploy(problem_dir, instanceid, port=None, name_prefix=None, host_port_range
                     detach=True,
                     name=container_name,
                     ports={f"{internal}/tcp": host_port},
+                    environment=environment or None,
+                    volumes=volumes or None,
                 )
                 break
             except APIError as e:

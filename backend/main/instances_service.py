@@ -14,6 +14,14 @@ from .instance_store import (
     try_mark_stopping,
 )
 from ..container import auto_deploy, auto_stop
+from .dynamic_flags import (
+    build_flag_environment,
+    cleanup_runtime_flag_file,
+    container_flag_path,
+    derive_dynamic_flag,
+    dynamic_flag_enabled,
+    write_runtime_flag_file,
+)
 from .routes.challenges import load_challenges, normalize_access_mode
 
 DEFAULT_HOST_PORT_RANGE = (30000, 40000)
@@ -119,6 +127,8 @@ def _deploy(
     problem_key: str,
     port: int | None = None,
     host_port_range: tuple[int, int] | None = None,
+    environment: dict[str, str] | None = None,
+    volumes: dict[str, dict[str, str]] | None = None,
 ) -> dict:
     return auto_deploy.deploy(
         problem_dir,
@@ -126,6 +136,8 @@ def _deploy(
         port=port,
         name_prefix=problem_key,
         host_port_range=host_port_range,
+        environment=environment,
+        volumes=volumes,
     )
 
 
@@ -194,6 +206,30 @@ def start_instance(*, user: dict, problem_key: str) -> dict:
     except ValueError as e:
         raise InstancesError(409, str(e))
 
+    deploy_environment = None
+    deploy_volumes = None
+    if dynamic_flag_enabled(challenge):
+        try:
+            runtime_flag = derive_dynamic_flag(
+                challenge=challenge,
+                problem_key=problem_key,
+                username=str(username),
+            )
+            deploy_environment = build_flag_environment(challenge=challenge, flag=runtime_flag)
+            mount_path = container_flag_path(challenge)
+            if mount_path:
+                host_flag_path = write_runtime_flag_file(instance_id=instance_id, flag=runtime_flag)
+                deploy_volumes = {
+                    host_flag_path: {
+                        "bind": mount_path,
+                        "mode": "ro",
+                    }
+                }
+        except ValueError as e:
+            mark_error(instance_id, str(e))
+            cleanup_runtime_flag_file(instance_id)
+            raise InstancesError(400, str(e))
+
     try:
         info = _deploy(
             problem_dir,
@@ -201,15 +237,20 @@ def start_instance(*, user: dict, problem_key: str) -> dict:
             problem_key=problem_key,
             port=port,
             host_port_range=host_port_range,
+            environment=deploy_environment,
+            volumes=deploy_volumes,
         )
     except ValueError as e:
         mark_error(instance_id, str(e))
+        cleanup_runtime_flag_file(instance_id)
         raise InstancesError(400, str(e))
     except FileNotFoundError as e:
         mark_error(instance_id, str(e))
+        cleanup_runtime_flag_file(instance_id)
         raise InstancesError(500, str(e))
     except RuntimeError as e:
         mark_error(instance_id, str(e))
+        cleanup_runtime_flag_file(instance_id)
         raise InstancesError(500, str(e))
 
     external_port = int(info["external_port"])
@@ -261,6 +302,7 @@ def stop_instance(*, user: dict, instance_id: int) -> dict:
     container_name = str(inst.get("container"))
     result = _stop_container(container_name)
     if result.get("status") == "ok" or _container_already_removed(result):
+        cleanup_runtime_flag_file(instance_id)
         remove_instance(instance_id)
         return {"status": "ok", "instance_id": instance_id, "container": container_name}
 

@@ -6,6 +6,7 @@ from fastapi.responses import FileResponse
 
 from ...core import models
 from ...core.config import CHALLENGE_FILE
+from ..dynamic_flags import derive_dynamic_flag, dynamic_flag_enabled
 
 
 def safe_join(base_dir: str, rel_path: str) -> str | None:
@@ -227,6 +228,15 @@ def sanitize_challenge(problem_key: str, challenge: dict, solve_count: int = 0) 
     ch.pop("dir", None)
     ch.pop("flag", None)
     ch.pop("flag_path", None)
+    ch.pop("flag_mode", None)
+    ch.pop("dynamic_flag", None)
+    ch.pop("flag_prefix", None)
+    ch.pop("flag_token_hex_len", None)
+    ch.pop("flag_include_problem", None)
+    ch.pop("flag_salt", None)
+    ch.pop("container_flag_path", None)
+    ch.pop("flag_mount_path", None)
+    ch.pop("flag_env", None)
     ch.pop("container_dir", None)
     ch["key"] = problem_key
     ch["challenge_id"] = ch.get("challenge_id") or problem_key
@@ -337,7 +347,16 @@ __all__ = [
 ]
 
 
-def _resolve_flag(challenge: dict) -> str:
+def _resolve_flag(challenge: dict, *, problem_key: str | None = None, username: str | None = None) -> str:
+    if dynamic_flag_enabled(challenge):
+        if not problem_key or not username:
+            raise HTTPException(status_code=400, detail="dynamic flag context missing")
+        return derive_dynamic_flag(
+            challenge=challenge,
+            problem_key=problem_key,
+            username=username,
+        )
+
     if "flag" in challenge and challenge.get("flag") is not None:
         return str(challenge.get("flag")).strip()
 
@@ -382,7 +401,11 @@ def submit_flag(req: models.SubmitRequest, request: Request):
     if not isinstance(challenge, dict):
         raise HTTPException(status_code=404, detail="challenge not found")
 
-    expected = _resolve_flag(challenge)
+    username = str(user.get("username") or "").strip()
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    expected = _resolve_flag(challenge, problem_key=req.problem, username=username)
     submitted = (req.flag or "").strip()
 
     if not expected:
@@ -390,10 +413,6 @@ def submit_flag(req: models.SubmitRequest, request: Request):
 
     if submitted != expected:
         return {"status": "ok", "correct": False}
-
-    username = str(user.get("username") or "").strip()
-    if not username:
-        raise HTTPException(status_code=401, detail="Unauthorized")
 
     score = int(challenge.get("score") or 0)
     solved, user_info = auth.mark_problem_solved(username, req.problem, score)

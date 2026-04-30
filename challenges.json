@@ -39,6 +39,7 @@
     "container": true,
     "port": 5000,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
     "downloads": [
       {
         "label": "README.md",
@@ -83,6 +84,8 @@
     "container": true,
     "port": 10969,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
+    "container_flag_path": "/app/flag.txt",
     "downloads": [
       {
         "label": "flag.txt",
@@ -105,6 +108,8 @@
     "container": true,
     "port": 5000,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
+    "container_flag_path": "/opt/ghostroute/flag.txt",
     "downloads": [
       {
         "label": "app.py",
@@ -127,6 +132,8 @@
     "container": true,
     "port": 8001,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
+    "container_flag_path": "/flag.txt",
     "downloads": [
       {
         "label": ".gitkeep",
@@ -255,6 +262,8 @@
     "container": true,
     "port": 8000,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
+    "container_flag_path": "/app/flag.txt",
     "downloads": [
       {
         "label": "Blind_Prefix.zip",
@@ -299,6 +308,8 @@
     "container": true,
     "port": 8000,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
+    "container_flag_path": "/flag.txt",
     "downloads": [
       {
         "label": "Command_Injection.zip",
@@ -321,6 +332,8 @@
     "container": true,
     "port": 8000,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
+    "container_flag_path": "/app/flag.txt",
     "downloads": [
       {
         "label": "CSRF.zip",
@@ -387,6 +400,8 @@
     "container": true,
     "port": 8000,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
+    "container_flag_path": "/app/flag.txt",
     "downloads": [
       {
         "label": "XSS.zip",
@@ -410,6 +425,8 @@
     "container_dir": ".",
     "port": 777,
     "flag_path": "private/flag.txt",
+    "flag_mode": "dynamic",
+    "container_flag_path": "/home/hackerlogin/flag.txt",
     "downloads": [
       {
         "label": "Haplestory.zip",

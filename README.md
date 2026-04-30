@@ -35,6 +35,8 @@ HexaCTF is a lightweight CTF platform with a FastAPI backend and a static fronte
 - `container_dir`: subdir to build/run (optional).
 - `downloads`: list of `{label, path}`.
 - `flag` or `flag_path`: flag value or file path.
+- `flag_mode: "dynamic"`: derive a per-user flag with `data/flag_secret.key`.
+- `container_flag_path`: optional absolute path to mount the derived flag read-only inside the container.
 - `desc`, `tags`, `locked`: optional UI fields.
 
 **Config**
@@ -42,6 +44,9 @@ HexaCTF is a lightweight CTF platform with a FastAPI backend and a static fronte
 - `HEXACTF_PBKDF2_ITERATIONS`
 - `HEXACTF_TOKEN_TTL`
 - `HEXACTF_SECRET`
+- `HEXACTF_FLAG_SECRET`
+- `HEXACTF_FLAG_PREFIX`
+- `HEXACTF_FLAG_TOKEN_HEX_LEN`
 - `HEXACTF_USER_INSTANCE_LIMIT`
 - `HEXACTF_MAX_USER_INSTANCE_LIMIT`
 - `HEXACTF_COOKIE_SECURE`
