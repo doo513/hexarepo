@@ -14,7 +14,7 @@ from .instance_store import (
     try_mark_stopping,
 )
 from ..container import auto_deploy, auto_stop
-from .routes.challenges import load_challenges, normalize_access_mode, safe_join
+from .routes.challenges import load_challenges, normalize_access_mode
 
 DEFAULT_HOST_PORT_RANGE = (30000, 40000)
 
@@ -165,7 +165,7 @@ def start_instance(*, user: dict, problem_key: str) -> dict:
         if os.path.isabs(container_dir):
             problem_dir = container_dir
         else:
-            problem_dir = safe_join(base_dir, container_dir)
+            from .routes.challenges import safe_join as _safe_join; problem_dir = _safe_join(base_dir, container_dir)
         if not problem_dir:
             raise InstancesError(500, "container_dir is invalid")
     else:

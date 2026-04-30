@@ -56,7 +56,7 @@
     </div>
   </nav>
 
-  <aside class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-50 flex flex-col py-6 px-4 space-y-2 hidden lg:flex">
+  <aside class="fixed left-0 top-16 h-full w-64 bg-slate-50 flex flex-col py-6 px-4 space-y-2 hidden lg:flex">
     <div class="px-8 mb-5">
       <p class="tracking-widest text-[10px] font-bold uppercase text-slate-400">The Atelier</p>
       <h2 class="font-headline text-lg font-black text-indigo-600">Challenge Board</h2>
@@ -64,13 +64,15 @@
     <nav class="flex flex-col gap-1">
       <a class="side-link active flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/challenges"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="side-link-label uppercase text-xs tracking-widest">Challenges</span></a>
       <a class="side-link flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/scoreboard"><span class="material-symbols-outlined text-[20px]">leaderboard</span><span class="side-link-label uppercase text-xs tracking-widest">Rankings</span></a>
-      <div class="px-4 pt-5 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Category</div>
-      <div class="flex flex-col gap-1" id="sidebarCategoryNav"></div>
       <a class="side-link admin-link hidden flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded" href="/admin"><span class="material-symbols-outlined text-[20px]">shield</span><span class="side-link-label uppercase text-xs tracking-widest">Admin</span></a>
     </nav>
+    <div class="mt-4 px-4">
+      <p class="tracking-widest text-[10px] font-bold uppercase text-slate-400 mb-2 px-4">Categories</p>
+      <div class="flex flex-col gap-0.5" id="sidebarCategories"></div>
+    </div>
   </aside>
 
-  <main class="pt-24 pb-16 pl-0 md:pl-64 bg-surface min-h-screen">
+  <main class="lg:ml-64 pt-24 pb-12 px-8 bg-surface min-h-screen">
         <div class="hidden" id="challengesClosedOverlay">
       <div class="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
         <span class="material-symbols-outlined text-[80px] text-slate-300 mb-6">lock</span>
@@ -83,38 +85,40 @@
         </div>
       </div>
     </div>
-    <div class="max-w-7xl mx-auto px-6 lg:px-8" id="challengesContentWrap">
-      <header class="mb-8">
-        <div class="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-slate-200 pb-8">
-          <div>
-            <span class="uppercase tracking-[0.2em] text-[10px] font-bold text-indigo-600 block mb-2">Curated Challenges</span>
-            <div class="flex items-center gap-3 flex-wrap">
-              <h1 class="text-5xl font-black font-headline tracking-tighter text-on-background">HackerLogin Challenges</h1>
-              <span class="badge-visibility hidden text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" data-badge="challenges"></span>
+    <div class="max-w-7xl mx-auto space-y-12" id="challengesContentWrap">
+      <header class="relative space-y-6">
+        <span class="text-xs uppercase tracking-[0.3em] text-primary font-bold">Curated Challenges</span>
+        <div class="flex items-start justify-between gap-6 flex-col xl:flex-row xl:items-end">
+          <div class="flex items-center gap-4 flex-wrap">
+            <h1 class="font-headline text-5xl font-bold tracking-tighter text-on-background">HackerLogin Challenges</h1>
+            <span class="badge-visibility hidden text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" data-badge="challenges"></span>
+          </div>
+          <div class="w-full xl:w-auto xl:min-w-[340px] bg-white/70 border border-slate-200/70 rounded-2xl px-5 py-4 shadow-[0_16px_36px_rgba(53,37,205,0.06)] backdrop-blur-sm" id="challengeProgressCard">
+            <div class="flex items-center justify-between gap-4 mb-3">
+              <span class="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">문제 풀이 현황</span>
+              <span class="font-headline text-3xl font-black tracking-tight text-primary tabular-nums" id="challengeProgressCount">0/0</span>
             </div>
-          </div>
-          <div class="text-right">
-            <p class="font-headline text-sm font-bold text-slate-400" id="challengeProgressLabel">문제 풀이 현황</p>
-            <div class="flex items-center gap-4 mt-2">
-              <span class="text-3xl font-black font-headline text-indigo-700" id="challengeProgressValue">0/0</span>
-              <div class="w-48 h-2 bg-slate-200 overflow-hidden"><div class="bg-indigo-600 h-full w-0 transition-all duration-300" id="challengeProgressBar"></div></div>
-            </div>
-          </div>
-        </div>
-        <div class="mt-8 flex flex-col gap-6">
-          <div class="flex items-center gap-6">
-            <span class="font-headline text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 min-w-[100px]">Category</span>
-            <div class="flex flex-wrap gap-2" id="filters"></div>
-          </div>
-          <div class="flex items-center gap-6">
-            <span class="font-headline text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 min-w-[100px]">Search</span>
-            <div class="w-full max-w-lg bg-slate-100 rounded px-3 py-2 flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm text-slate-400">search</span>
-              <input class="bg-transparent border-none focus:ring-0 text-[11px] font-bold uppercase tracking-widest w-full p-0" id="searchInput" placeholder="Find challenge title or keyword" type="text" />
+            <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+              <div class="h-full rounded-full bg-primary transition-all duration-300" id="challengeProgressBar" style="width: 0%"></div>
             </div>
           </div>
         </div>
+        <div class="absolute -top-10 -right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
       </header>
+
+      <div class="flex flex-col gap-7">
+        <div class="flex items-center gap-8">
+          <span class="font-headline text-[11px] font-black uppercase tracking-[0.24em] text-slate-400 min-w-[92px]">Category</span>
+          <div class="flex flex-wrap gap-2" id="filters"></div>
+        </div>
+        <div class="flex items-center gap-8">
+          <span class="font-headline text-[11px] font-black uppercase tracking-[0.24em] text-slate-400 min-w-[92px]">Search</span>
+          <div class="w-full max-w-2xl bg-slate-100 rounded px-3 py-2.5 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm text-slate-400">search</span>
+            <input class="bg-transparent border-none focus:ring-0 text-[11px] font-bold uppercase tracking-widest w-full p-0" id="searchInput" placeholder="Find challenge title or keyword" type="text" />
+          </div>
+        </div>
+      </div>
 
       <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="grid"></section>
     </div>
@@ -132,7 +136,7 @@
           <div class="flex items-center gap-2 flex-wrap">
             <div class="detail-chip" id="detailCategory">MISC</div>
             <div class="detail-chip detail-chip-muted" id="detailDifficulty">BEGINNER</div>
-            <div class="detail-points" id="detailPoints">0 PTS</div>
+            <div class="detail-points" id="detailPoints">0 Point</div>
           </div>
           <h2 class="detail-title" id="detailTitle">Challenge</h2>
           <div class="detail-meta-row">
@@ -142,7 +146,7 @@
 
         <section class="space-y-4 detail-section-tight">
           <h3 class="detail-section-title detail-section-title-lg">문제 설명</h3>
-          <p class="detail-description" id="detailDescription">No description.</p>
+          <div class="detail-description" id="detailDescription">No description.</div>
         </section>
 
         <section class="space-y-2 detail-section-tight" id="detailDownloadsWrap">
@@ -189,11 +193,11 @@
     </div>
   </div>
 
-  <script src="/static/js/app-core.js?v=1776019819"></script>
-  <script src="/static/js/app-auth.js?v=1776019819"></script>
-  <script src="/static/js/app-challenges.js?v=1776019819"></script>
-  <script src="/static/js/app-router.js?v=1776019819"></script>
-  <script src="/static/js/app-main.js?v=1776019819"></script>
+  <script src="/static/js/app-core.js?v=1776028600"></script>
+  <script src="/static/js/app-auth.js?v=1776028600"></script>
+  <script src="/static/js/app-challenges.js?v=1776028600"></script>
+  <script src="/static/js/app-router.js?v=1776028600"></script>
+  <script src="/static/js/app-main.js?v=1776028600"></script>
 
   <div class="password-modal hidden" id="passwordChangeModal" aria-hidden="true">
     <div class="password-modal-backdrop" data-action="close-password-modal"></div>

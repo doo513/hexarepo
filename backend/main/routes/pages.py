@@ -1,8 +1,9 @@
 import os
 
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 
+from ...auth.deps import get_admin_user
 from ...core.config import PAGES_DIR
 
 router = APIRouter()
@@ -42,7 +43,11 @@ def scoreboard_page():
 
 
 @router.get("/admin")
-def admin_page():
+def admin_page(request: Request):
+    try:
+        get_admin_user(request)
+    except HTTPException:
+        return RedirectResponse(url="/login", status_code=303)
     return HTMLResponse(_read_page("admin.html"))
 
 

@@ -43,3 +43,8 @@ class UserApprovalActionRequest(BaseModel):
 class SubmitRequest(BaseModel):
     problem: str
     flag: str
+
+class ReclaimRequest(BaseModel):
+    instance_id: int | None = None
+    username: str | None = None
+

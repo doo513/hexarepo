@@ -7,7 +7,8 @@ from .deps import get_admin_user
 from .deps import require_csrf
 from ..core import models
 from ..core.config import CHALLENGE_FILE
-from ..main.instance_store import ACTIVE_INSTANCE_STATUSES, list_instances_snapshot
+from ..main.instance_store import ACTIVE_INSTANCE_STATUSES, list_instances_snapshot, remove_instance, try_mark_stopping
+from ..main.instances_service import _stop_container
 from ..main.settings_service import get_ranking_settings, get_user_instance_limit, set_ranking_open, set_user_instance_limit, get_challenges_settings, set_challenges_visibility, set_ranking_schedule, is_challenges_visible, is_ranking_visible
 
 router = APIRouter()
@@ -269,3 +270,68 @@ def admin_summary(request: Request):
             "ranking_visible": rankings_vis,
         },
     }
+
+@router.get("/api/admin/instances")
+def admin_list_instances(request: Request):
+    get_admin_user(request)
+    instances = list_instances_snapshot()
+    active = [
+        inst for inst in instances
+        if isinstance(inst, dict) and inst.get("status") in ACTIVE_INSTANCE_STATUSES
+    ]
+    return {
+        "status": "ok",
+        "instances": active,
+    }
+
+
+@router.post("/api/admin/instances/reclaim")
+def admin_reclaim_instances(request: Request, body: models.ReclaimRequest = models.ReclaimRequest()):
+    get_admin_user(request)
+    require_csrf(request)
+    instance_id_filter = body.instance_id
+    username_filter = body.username
+
+    instances = list_instances_snapshot()
+    reclaimed = []
+    failed = []
+
+    targets = instances
+    if instance_id_filter is not None:
+        targets = [inst for inst in instances if isinstance(inst, dict) and inst.get("instance_id") == instance_id_filter]
+    elif username_filter is not None:
+        targets = [inst for inst in instances if isinstance(inst, dict) and str(inst.get("owner") or "").strip().lower() == username_filter.strip().lower()]
+
+    for inst in targets:
+        if not isinstance(inst, dict):
+            continue
+        iid = inst.get("instance_id")
+        status = inst.get("status")
+        if status != "running":
+            if instance_id_filter is not None:
+                failed.append({"instance_id": iid, "reason": f"not running (status={status})"})
+            continue
+
+        stop_status, stop_info = try_mark_stopping(
+            instance_id=iid,
+            requester_username="admin",
+            requester_role="admin",
+        )
+        if stop_status in ("already_stopping", "not_running", "not_found", "forbidden", "missing_container"):
+            failed.append({"instance_id": iid, "reason": stop_status})
+            continue
+
+        container_name = inst.get("container")
+        try:
+            _stop_container(container_name)
+        except Exception as exc:
+            failed.append({"instance_id": iid, "reason": f"stop error: {exc}"})
+        remove_instance(iid)
+        reclaimed.append({"instance_id": iid, "owner": inst.get("owner"), "problem": inst.get("problem")})
+
+    return {
+        "status": "ok",
+        "reclaimed": reclaimed,
+        "failed": failed,
+    }
+

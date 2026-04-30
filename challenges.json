@@ -1,161 +1,421 @@
 {
-  "pwn1": {
-    "challenge_id": "pwn-01-basic",
-    "title": "기초 버퍼 오버플로우",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/PW/pwn1",
-    "category": "pwn",
-    "score": 100,
-    "port": 5001,
-    "type": "pwn",
-    "downloads": [
-      { "label": "prob", "path": "deploy/prob" }
-    ],
-    "flag_path": "deploy/flag.txt"
-  },
-  "pwn2": {
-    "challenge_id": "BasicROP",
-    "title": "기초 ROP",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/PW/Basic_ROP",
-    "container_dir": "public",
-    "category": "pwn",
-    "score": 100,
-    "port": 10011,
-    "type": "pwn",
-    "downloads": [
-      { "label": "prob", "path": "public/deploy/prob" },
-      { "label": "prob.c", "path": "public/deploy/prob.c" },
-      { "label": "libc.so.6", "path": "public/deploy/libc.so.6" }
-    ],
-    "flag_path": "private/flag"
-  },
-  "pwn3": {
-    "challenge_id": "BaseballGame",
-    "title": "baseball_game",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/PW/baseball_game",
-    "container_dir": "public",
-    "category": "pwn",
-    "score": 150,
-    "port": 10010,
-    "type": "pwn",
-    "downloads": [
-      { "label": "prob", "path": "public/deploy/prob" },
-      { "label": "prob.c", "path": "public/deploy/prob.c" },
-      { "label": "libc.so.6", "path": "public/deploy/libc.so.6" }
-    ],
-    "flag_path": "private/flag"
-  },
-  "web_villa": {
-    "challenge_id": "villa",
-    "title": "Villa",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/web/villa",
-    "container_dir": "user",
-    "category": "web",
-    "score": 200,
-    "type": "web",
-    "flag": "HexaCTF{Can_you_solve_this?}"
-  },
-  "web_ssti": {
-    "challenge_id": "SSTI",
-    "title": "SSTI",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/web/SSTI",
-    "container_dir": "user",
-    "category": "web",
-    "score": 200,
-    "port": 8000,
-    "type": "web",
-    "flag_path": "admin/app/flag.txt"
-  },
-  "web_lfi": {
-    "challenge_id": "Utilizing_LFI",
-    "title": "Utilizing LFI",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/web/Utilizing_LFI",
-    "container_dir": "user",
-    "category": "web",
-    "score": 200,
-    "port": 80,
-    "type": "web",
-    "flag_path": "admin/public/flag.txt"
-  },
-  "forensic_divide": {
-    "challenge_id": "divide",
-    "title": "divide",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/forensic/divide",
+  "nothing_special": {
+    "challenge_id": "nothing_special",
+    "title": "Nothing_Special",
+    "author": "박진우",
+    "dir": "/home/hexa/2026HL_Challenges/Nothing_Special",
     "category": "forensic",
-    "score": 120,
+    "score": 300,
     "type": "forensic",
+    "tags": [
+      "forensic"
+    ],
+    "desc": "HackerLogin 회장이 CTF 문제를 만들어서 담아놓은 USB를 잃어버렸다.\nUSB를 다시 찾았지만 누군가 주워서 CTF 문제가 담긴 .zip 파일을 숨겨버렸다!\n숨겨져있는 zip을 찾고 그 안에 있는 플래그를 찾으면 문제가 해결 될 것 같다...\n\n*disk_image.dd 파일을 다운받아 autopsy, FTK imager등 포렌식 분석도구를 사용해 디스크 이미지를 확인해보자!\n*플래그 형식은 2026HL{...}입니다.",
     "container": false,
-    "flag_path": "flag.txt"
-  },
-  "forensic_easy_android": {
-    "challenge_id": "easy_android",
-    "title": "easy_android",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/forensic/easy_android",
-    "category": "forensic",
-    "score": 120,
-    "type": "forensic",
-    "container": false,
+    "flag_path": "private/flag.txt",
     "downloads": [
-      { "label": "easy_android.zip", "path": "easy_android.zip" }
+      {
+        "label": "disk_image.zip",
+        "path": "public/disk_image.zip"
+      },
+      {
+        "label": ".gitkeep",
+        "path": "public/.gitkeep"
+      }
     ]
   },
-  "forensic_easy_forensic": {
-    "challenge_id": "easy_forensic",
-    "title": "easy_forensic",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/forensic/easy_forensic",
-    "category": "forensic",
-    "score": 120,
-    "type": "forensic",
-    "container": false,
-    "downloads": [
-      { "label": "flag.mp3", "path": "flag.mp3" }
-    ]
-  },
-  "rev_reversing": {
-    "challenge_id": "reversing_01",
-    "title": "Reversing",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/rev",
-    "category": "rev",
-    "score": 150,
-    "type": "rev",
-    "container": false,
-    "downloads": [
-      { "label": "reversing.zip", "path": "250212_수정_리버싱.zip" }
+  "hidden_recipient": {
+    "challenge_id": "hidden_recipient",
+    "title": "Hidden_Recipient",
+    "author": "김우민",
+    "dir": "/home/hexa/2026HL_Challenges/Hidden_Recipient",
+    "category": "web",
+    "score": 500,
+    "type": "web",
+    "tags": [
+      "web"
     ],
-    "flag": "HexaCTF{h1dD3n_aRr@ng3MeNt}"
-  },
-  "misc_lunch_maze": {
-    "challenge_id": "lunch_maze",
-    "title": "Lunch maze",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/misc/lunch-maze",
-    "container_dir": "server",
-    "category": "misc",
-    "score": 150,
+    "desc": "HackerLogin 내부 메시지 포털에서 비밀 메모 열람 흐름을 점검하던 중, 특정 조건에서 다른 사용자의 메타데이터가 노출된다는 제보가 들어왔습니다.\n\n제공 계정으로 로그인한 뒤 서비스 흐름을 분석하고, 최상위 비밀 메모 안에 숨겨진 승인 코드를 확보하세요.\n\n\n- 접속 정보는 운영 환경에서 제공합니다.\n- 기본 테스트 계정: `guest / guest`\n- 별도 다운로드 파일은 없습니다.",
+    "container": true,
     "port": 5000,
-    "type": "misc",
-    "flag_path": "server/flag.txt"
-  },
-  "misc_audiomaster": {
-    "challenge_id": "audiomaster",
-    "title": "AudioMaster",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/misc",
-    "category": "misc",
-    "score": 120,
-    "type": "misc",
-    "container": false,
+    "flag_path": "private/flag.txt",
     "downloads": [
-      { "label": "AudioMaster.zip", "path": "AudioMaster.zip" }
+      {
+        "label": "README.md",
+        "path": "public/README.md"
+      }
     ]
   },
-  "misc_this_is_image": {
-    "challenge_id": "this_is_image",
-    "title": "This is Image",
-    "dir": "/home/hexa/hexactf/HexaCTF_Challenges/misc",
-    "category": "misc",
-    "score": 120,
-    "type": "misc",
+  "deleted_flag": {
+    "challenge_id": "deleted_flag",
+    "title": "Deleted_flag",
+    "author": "박진우",
+    "dir": "/home/hexa/2026HL_Challenges/Deleted_flag",
+    "category": "forensic",
+    "score": 500,
+    "type": "forensic",
+    "tags": [
+      "forensic"
+    ],
+    "desc": "HackerLogin 회장 USB를 가져간 사람은 악질인게 분명하다...\n도둑이 flag 파일마저 삭제 시켜버렸다!\n삭제된 플래그를 찾아 제출해보자 \n\n*Nothing_here에서 사용한 디스크 이미지 파일 그대로 사용\n*플래그 형식은 2026HL{...}입니다.",
     "container": false,
+    "flag_path": "private/flag.txt",
     "downloads": [
-      { "label": "This is Image.txt", "path": "This is Image.txt" }
+      {
+        "label": ".gitkeep",
+        "path": "public/.gitkeep"
+      }
     ]
+  },
+  "hackertherock": {
+    "challenge_id": "hackertherock",
+    "title": "HackerTheRock",
+    "author": "이명열",
+    "dir": "/home/hexa/2026HL_Challenges/HackerTheRock",
+    "category": "web",
+    "score": 500,
+    "type": "web",
+    "tags": [
+      "web",
+      "misc"
+    ],
+    "desc": "보안밴드의 첫 라이브 공연!!\n\n그런데 기타가 악보를 잊어버렸어요.\n악보는 admin만 볼 수 있다는데...?\n\n기타를 도와 악보를 찾고 무사히 공연을 맞춰주세요!!!",
+    "container": true,
+    "port": 10969,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "flag.txt",
+        "path": "public/flag.txt"
+      }
+    ]
+  },
+  "ghostroute": {
+    "challenge_id": "ghostroute",
+    "title": "GhostRoute",
+    "author": "전현웅",
+    "dir": "/home/hexa/2026HL_Challenges/GhostRoute",
+    "category": "web",
+    "score": 300,
+    "type": "web",
+    "tags": [
+      "web"
+    ],
+    "desc": "사내망 장애 이후 급하게 배포된 **GhostRoute**는 목적지까지의 경로를 점검하는 내부 진단 도구다.\n\n겉보기엔 평범한 네트워크 점검 페이지지만, 운영팀도 놓친 이상한 동작이 숨어 있다. GhostRoute를 조사해 플래그를 획득하라.",
+    "container": true,
+    "port": 5000,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "app.py",
+        "path": "public/app.py"
+      }
+    ]
+  },
+  "hlcoin": {
+    "challenge_id": "hlcoin",
+    "title": "HLCoin",
+    "author": "김채은",
+    "dir": "/home/hexa/2026HL_Challenges/HLCoin",
+    "category": "web",
+    "score": 300,
+    "type": "web",
+    "tags": [
+      "web"
+    ],
+    "desc": "새로운 암호화폐 플랫폼 **HLCoin**이 출시되었습니다. \n시스템을 분석하여 flag를 획득하세요.",
+    "container": true,
+    "port": 8001,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": ".gitkeep",
+        "path": "public/.gitkeep"
+      }
+    ]
+  },
+  "blackjack": {
+    "challenge_id": "blackjack",
+    "title": "Blackjack",
+    "author": "박진우",
+    "dir": "/home/hexa/2026HL_Challenges/Blackjack",
+    "category": "misc",
+    "score": 300,
+    "type": "misc",
+    "tags": [
+      "misc"
+    ],
+    "desc": "디스코드에 Blackjack 채널에서 게임을 열심히해보자!\n\n*플래그 형식은 2026HL{...}입니다.",
+    "container": false,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": ".gitkeep",
+        "path": "public/.gitkeep"
+      }
+    ]
+  },
+  "first_login": {
+    "challenge_id": "first_login",
+    "title": "First Login",
+    "author": "김우민",
+    "dir": "/home/hexa/2026HL_Challenges/First_Login",
+    "category": "rev",
+    "score": 100,
+    "type": "rev",
+    "tags": [
+      "rev"
+    ],
+    "desc": "- 제공된 Windows 실행 파일을 분석해 올바른 접근 코드를 찾아내고, 프로그램에 직접 입력해 flag를 획득하세요.\n\n\n- `public/first_login.exe`\n\n\n- IDA Free\n- Ghidra\n\n이 문제는 리버싱을 처음 접하는 신입생을 위한 초급 문제입니다. 프로그램이 사용자의 입력값을 어떤 방식으로 검사하는지에 집중해 보세요.",
+    "container": false,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "first_login.zip",
+        "path": "public/first_login.zip"
+      }
+    ]
+  },
+  "frog": {
+    "challenge_id": "frog",
+    "title": "Frog",
+    "author": "김채은",
+    "dir": "/home/hexa/2026HL_Challenges/Frog",
+    "category": "misc",
+    "score": 100,
+    "type": "misc",
+    "tags": [
+      "misc"
+    ],
+    "desc": "개구리가 개구리가 아니라고 주장합니다.",
+    "container": false,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "frog.tar",
+        "path": "public/frog.tar"
+      }
+    ]
+  },
+  "microorganisms": {
+    "challenge_id": "microorganisms",
+    "title": "Microorganisms",
+    "author": "김채은",
+    "dir": "/home/hexa/2026HL_Challenges/Microorganisms",
+    "category": "forensic",
+    "score": 300,
+    "type": "forensic",
+    "tags": [
+      "forensic"
+    ],
+    "desc": "눈이 아파요",
+    "container": false,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "Microorganisms.zip",
+        "path": "public/Microorganisms.zip"
+      }
+    ]
+  },
+  "affine_cipher": {
+    "challenge_id": "affine_cipher",
+    "title": "Affine Cipher",
+    "author": "임창범",
+    "dir": "/home/hexa/2026HL_Challenges/Affine_Cipher",
+    "category": "crypto",
+    "score": 100,
+    "type": "crypto",
+    "tags": [
+      "crypto"
+    ],
+    "desc": "범교수님이 내준 과제, 제출마감이 오후 6시까지라고? \n아니 이번엔 수식까지 붙은 암호문이네? 그래서 affine cipher가 뭔데!!! 샤갈..",
+    "container": true,
+    "port": 80,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "Affine_Cipher.zip",
+        "path": "public/Affine_Cipher.zip"
+      }
+    ]
+  },
+  "blind_prefix": {
+    "challenge_id": "blind_prefix",
+    "title": "Blind Prefix",
+    "author": "임창범",
+    "dir": "/home/hexa/2026HL_Challenges/Blind_Prefix",
+    "category": "web",
+    "score": 100,
+    "type": "web",
+    "tags": [
+      "web"
+    ],
+    "desc": "범교수님이 내준 과제, 제출마감이 오후 6시까지라고? \n아니 정답을 안 보여 주고 앞부분이 맞는지만 알려 주면 내가 어떻게 풀어!!! 그래서 blind prefix validation이 뭔데!!! 샤갈..\n\n그래도 힌트는 주시네... 한 글자씩 맞는지 물어볼 수 있다면, 자동화가 답이다...?\n이게 힌트가 맞나...?",
+    "container": true,
+    "port": 8000,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "Blind_Prefix.zip",
+        "path": "public/Blind_Prefix.zip"
+      }
+    ]
+  },
+  "caesar_cipher": {
+    "challenge_id": "caesar_cipher",
+    "title": "Caesar Cipher",
+    "author": "임창범",
+    "dir": "/home/hexa/2026HL_Challenges/Caesar_Cipher",
+    "category": "crypto",
+    "score": 100,
+    "type": "crypto",
+    "tags": [
+      "crypto"
+    ],
+    "desc": "범교수님이 내준 과제, 제출마감이 오후 6시까지라고? \n아니 로마 이야기인 줄 알았더니 갑자기 이상한 문자열이 튀어나오네? \n그래서 Caesar cipher가 뭔데!!! 샤갈..\n\n몇 칸 밀렸는지만 알면 돌아올 수 있다..? 그래도 힌트는 주시네...",
+    "container": true,
+    "port": 80,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "Caesar_Cipher.zip",
+        "path": "public/Caesar_Cipher.zip"
+      }
+    ]
+  },
+  "command_injection": {
+    "challenge_id": "command_injection",
+    "title": "Command Injection",
+    "author": "임창범",
+    "dir": "/home/hexa/2026HL_Challenges/Command_Injection",
+    "category": "web",
+    "score": 100,
+    "type": "web",
+    "tags": [
+      "web"
+    ],
+    "desc": "범교수님이 내준 과제, 제출마감이 오후 6시까지라고? \n아니 핑 한 번 보내는 페이지에 command injection..?  \n아니 전에 했던거는 같은데 기억이 하나도 않나! 샤갈..!!!",
+    "container": true,
+    "port": 8000,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "Command_Injection.zip",
+        "path": "public/Command_Injection.zip"
+      }
+    ]
+  },
+  "csrf": {
+    "challenge_id": "csrf",
+    "title": "CSRF",
+    "author": "임창범",
+    "dir": "/home/hexa/2026HL_Challenges/CSRF",
+    "category": "web",
+    "score": 100,
+    "type": "web",
+    "tags": [
+      "web"
+    ],
+    "desc": "범교수님이 내준 과제, 제출마감이 오후 6시까지라고? \n아니 로그인은 되어 있는데 내 정보는 내가 못 바꾸고, \n이상한 페이지가 대신 바꾼다고? 그래서 CSRF가 뭐였지..? 샤갈.. 기억이 안나...",
+    "container": true,
+    "port": 8000,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "CSRF.zip",
+        "path": "public/CSRF.zip"
+      }
+    ]
+  },
+  "nothing_here": {
+    "challenge_id": "nothing_here",
+    "title": "Nothing Here",
+    "author": "임창범",
+    "dir": "/home/hexa/2026HL_Challenges/Nothing_Here",
+    "category": "web",
+    "score": 100,
+    "type": "web",
+    "tags": [
+      "web"
+    ],
+    "desc": "범교수님이 내준 과제, 제출마감이 오후 6시까지라고? \n아니 화면엔 진짜 아무것도 없는데 뭘 찾으라는 거야!!! 샤갈..\n\n보이는 것만이 전부는 아니다...? 그래도 힌트는 주시네...",
+    "container": true,
+    "port": 80,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "Nothing_Here.zip",
+        "path": "public/Nothing_Here.zip"
+      }
+    ]
+  },
+  "vigenere_cipher": {
+    "challenge_id": "vigenere_cipher",
+    "title": "Vigenere Cipher",
+    "author": "임창범",
+    "dir": "/home/hexa/2026HL_Challenges/Vigenere_Cipher",
+    "category": "crypto",
+    "score": 100,
+    "type": "crypto",
+    "tags": [
+      "crypto"
+    ],
+    "desc": "범교수님이 내준 과제, 제출마감이 오후 6시까지라고? \n아니 시저도 겨우 기억나는데 이번엔 반복 키까지 쓰는 암호라고? \n그래서 Vigenere cipher가 뭔데!!! 샤갈..\n\n그래도 힌트는 주시네... 열쇠는 멀리 있지 않고, 문장들의 시작에 숨어 있다...?",
+    "container": true,
+    "port": 80,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "Vigenere_Cipher.zip",
+        "path": "public/Vigenere_Cipher.zip"
+      }
+    ]
+  },
+  "xss": {
+    "challenge_id": "xss",
+    "title": "XSS",
+    "author": "임창범",
+    "dir": "/home/hexa/2026HL_Challenges/XSS",
+    "category": "web",
+    "score": 100,
+    "type": "web",
+    "tags": [
+      "web"
+    ],
+    "desc": "범교수님이 내준 과제, 제출마감이 오후 6시까지라고? \n아니 글을 썼을 뿐인데 그게 실행까지 된다고? \n그래서 XSS 어떻게 하더라.. 샤갈..",
+    "container": true,
+    "port": 8000,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "XSS.zip",
+        "path": "public/XSS.zip"
+      }
+    ]
+  },
+  "haplestory": {
+    "challenge_id": "haplestory",
+    "title": "HapleStory",
+    "author": "이명열",
+    "dir": "/home/hexa/2026HL_Challenges/Haplestory",
+    "category": "pwn",
+    "score": 500,
+    "type": "pwn",
+    "tags": [
+      "pwn"
+    ],
+    "desc": "HapleStory 창섭이는 신규 이벤트를 기획했어요\n\n하지만 용사님들을 빨리 만나고 싶다는 생각에 코드를 점검하지 않고 출시 해버렸어요!!\n\nHapleStory를 즐기며 플래그를 출력해 보아요",
+    "container": true,
+    "container_dir": ".",
+    "port": 777,
+    "flag_path": "private/flag.txt",
+    "downloads": [
+      {
+        "label": "Haplestory.zip",
+        "path": "public/Haplestory.zip"
+      }
+    ],
+    "access_mode": "tcp"
   }
 }

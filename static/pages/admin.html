@@ -164,7 +164,7 @@
 
     <section class="bg-surface-container-lowest rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.04)] overflow-hidden admin-link" id="adminPanel">
       <div class="p-6 border-b border-surface-container">
-        <h2 class="font-headline font-bold text-lg">User Directory</h2>
+        <div class="flex items-center gap-4"><h2 class="font-headline font-bold text-lg">User Directory</h2><button class="bg-red-500 text-white font-headline text-xs px-4 py-2 rounded-sm hover:shadow-lg transition-all active:scale-95" id="reclaimAllInstancesBtn" type="button">Reclaim All Instances</button></div>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left admin-table">
@@ -185,7 +185,27 @@
         </table>
       </div>
     </section>
-  </main>
+      <section class="bg-surface-container-lowest rounded-lg shadow-[0_20px_40px_rgba(53,37,205,0.04)] overflow-hidden mb-8" id="adminInstanceSection">
+      <div class="p-6 border-b border-surface-container flex items-center justify-between">
+        <div class="mt-8"></div><h2 class="font-headline font-bold text-lg">Instance Management</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left admin-table">
+          <thead class="bg-surface-container-low">
+            <tr>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Owner</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Problem</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Status</th>
+              <th class="px-6 py-4 font-headline font-bold text-xs uppercase tracking-widest text-slate-500">Created</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-surface-container" id="adminInstancesBody">
+            <tr><td class="px-6 py-8 text-slate-400 text-center" colspan="4">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+</main>
 
   <script src="/static/js/app-core.js?v=1776019819"></script>
   <script src="/static/js/app-auth.js?v=1776019819"></script>

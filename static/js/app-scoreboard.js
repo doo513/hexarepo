@@ -15,7 +15,6 @@
   ];
   const SCOREBOARD_TOP_LIMIT = 10;
   const MIN_WINDOW_MS = 5 * 60 * 1000;
-  const SCOREBOARD_CACHE_KEY = "hexactf_scoreboard_reset_at";
 
   const timelineState = {
     rawTimeline: null,
@@ -24,13 +23,6 @@
     viewStartMs: null,
     viewEndMs: null
   };
-
-  function withCacheBust(path) {
-    const cacheBust = localStorage.getItem(SCOREBOARD_CACHE_KEY);
-    if (!cacheBust) return path;
-    const sep = path.includes("?") ? "&" : "?";
-    return `${path}${sep}ts=${encodeURIComponent(cacheBust)}`;
-  }
 
   function setClosedState(closed, message = "") {
     if (dom.scoreboardClosedWrap) {
@@ -62,13 +54,15 @@
       const solved = Number(row.solved_count || 0);
       const username = escapeHtml(String(row.username || "unknown"));
       const display = escapeHtml(String(row.display_name || row.username || "Unknown"));
-      const userHtml = `<div class="font-bold text-sm">${display}</div>`;
+      const userHtml = display !== username
+        ? `<div class="font-bold text-sm">${display}</div><div class="text-xs text-slate-400">@${username}</div>`
+        : `<div class="font-bold text-sm">${display}</div>`;
       const rankTone = rank === 1
-        ? "bg-amber-100 text-amber-700"
+        ? "bg-indigo-50 text-indigo-700"
         : rank === 2
-          ? "bg-slate-300 text-slate-800"
+          ? "bg-slate-100 text-slate-700"
           : rank === 3
-            ? "bg-orange-100 text-orange-700"
+            ? "bg-amber-50 text-amber-700"
             : "bg-transparent text-slate-600";
 
       return `
@@ -93,6 +87,7 @@
       const row = byRank.get(rank);
       if (!row) return;
       const display = String(row.display_name || row.username || "Unknown");
+      const username = String(row.username || "unknown");
       const score = Number(row.score || 0);
       const solved = Number(row.solved_count || 0);
       const displayEl = card.querySelector('[data-field="display_name"]');
@@ -100,8 +95,8 @@
       const usernameEl = card.querySelector('[data-field="username"]');
       const solvedEl = card.querySelector('[data-field="solved_count"]');
       if (displayEl) displayEl.textContent = display;
-      if (scoreEl) scoreEl.textContent = `${score} PTS`;
-      if (usernameEl) usernameEl.remove();
+      if (scoreEl) scoreEl.textContent = `${score} Point`;
+      if (usernameEl) usernameEl.textContent = `@${username}`;
       if (solvedEl) solvedEl.textContent = `${solved} solves`;
     });
   }
@@ -285,7 +280,7 @@
 
     try {
       const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
-      const res = await fetchWithTimeout(withCacheBust("/api/scoreboard"), { headers, cache: "no-store" }, 5000);
+      const res = await fetchWithTimeout("/api/scoreboard", { headers }, 5000);
       const data = await res.json();
       if (res.status === 403) {
         const error = new Error(data.detail || "This page has been closed.");
@@ -332,7 +327,7 @@
 
   async function loadSummary() {
     const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
-    const res = await fetchWithTimeout(withCacheBust("/api/scoreboard/summary"), { headers, cache: "no-store" }, 5000);
+    const res = await fetchWithTimeout("/api/scoreboard/summary", { headers }, 5000);
     const data = await res.json();
     if (res.status === 403) {
       const error = new Error(data.detail || "This page has been closed.");
@@ -344,7 +339,7 @@
 
   async function loadTimeline() {
     const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
-    const res = await fetchWithTimeout(withCacheBust(`/api/scoreboard/timeline?limit=${SCOREBOARD_TOP_LIMIT}&full=1`), { headers, cache: "no-store" }, 5000);
+    const res = await fetchWithTimeout(`/api/scoreboard/timeline?limit=${SCOREBOARD_TOP_LIMIT}&full=1`, { headers }, 5000);
     const data = await res.json();
     if (res.status === 403) {
       const error = new Error(data.detail || "This page has been closed.");

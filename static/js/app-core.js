@@ -3,10 +3,6 @@
     grid: document.getElementById("grid"),
     logEl: document.getElementById("log"),
     filtersEl: document.getElementById("filters"),
-    sidebarCategoryNav: document.getElementById("sidebarCategoryNav"),
-    challengeProgressLabel: document.getElementById("challengeProgressLabel"),
-    challengeProgressValue: document.getElementById("challengeProgressValue"),
-    challengeProgressBar: document.getElementById("challengeProgressBar"),
     searchInput: document.getElementById("searchInput"),
     clearLogBtn: document.getElementById("clearLogBtn"),
     navLinks: document.querySelectorAll(".nav-link"),
@@ -65,7 +61,9 @@
     detailCopyConnectBtn: document.getElementById("detailCopyConnectBtn"),
     detailFlagInput: document.getElementById("detailFlagInput"),
     detailFlagMessage: document.getElementById("detailFlagMessage"),
-    detailContent: document.querySelector(".challenge-detail-content")
+    challengeProgressCard: document.getElementById("challengeProgressCard"),
+    challengeProgressCount: document.getElementById("challengeProgressCount"),
+    challengeProgressBar: document.getElementById("challengeProgressBar")
   };
 
   const state = {
@@ -119,16 +117,11 @@
   }
 
   function normalizeCat(cat) {
-    const aliases = {
-      pwnable: "pwn",
-      pw: "pwn",
-      reversing: "rev",
-      reverse: "rev",
-      forensics: "forensic"
-    };
-    const c = String(cat || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/-/g, "_");
-    if (!c) return "misc";
-    return aliases[c] || c;
+    const c = String(cat || "").trim().replace(/^['\"]+|['\"]+$/g, "").toLowerCase();
+    if (["pwn", "web", "rev", "crypto", "misc", "forensic"].includes(c)) return c;
+    if (c === "reversing") return "rev";
+    if (c === "forensics") return "forensic";
+    return "misc";
   }
 
   function formatBytes(bytes) {

@@ -6,13 +6,6 @@
   <title>HexaCTF - Rankings</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <script>
-    (() => {
-      const theme = localStorage.getItem("hexactf_theme") || "light";
-      document.documentElement.dataset.theme = theme;
-      document.documentElement.classList.toggle("dark", theme === "dark");
-    })();
-  </script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
     tailwind.config = { darkMode: 'class', theme: { extend: { colors: {
@@ -21,7 +14,7 @@
   </script>
   <link rel="stylesheet" href="/static/css/stitch-ui.css" />
 </head>
-<body class="route-pending bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-primary" data-page="scoreboard">
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-primary" data-page="scoreboard">
   <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex justify-between items-center px-8 h-16">
     <div class="flex items-center gap-8">
       <span class="brand-title text-xl font-black tracking-tighter text-indigo-700">HackerLogin CTF</span>
@@ -32,8 +25,8 @@
       </div>
     </div>
     <div class="flex items-center gap-4">
-      <span class="material-symbols-outlined text-indigo-600 cursor-pointer account-circle-parent" title="비밀번호 변경">account_circle</span>
-      <div class="user-pill cursor-pointer" id="currentUser" title="비밀번호 변경">Guest</div>
+      <span class="material-symbols-outlined text-indigo-600">account_circle</span>
+      <div class="user-pill" id="currentUser">Guest</div>
       <button class="bg-indigo-600 text-white text-[10px] font-bold tracking-[0.16em] uppercase px-4 py-2 rounded-sm active:scale-95 transition-transform" id="logoutTopBtn" type="button">Logout</button>
     </div>
   </nav>
@@ -52,7 +45,10 @@
     <div class="max-w-7xl mx-auto space-y-12">
       <header class="relative space-y-2">
         <span class="text-xs uppercase tracking-[0.3em] text-primary font-bold">Hall of Fame</span>
-        <div class="flex items-center gap-3 flex-wrap"><h1 class="font-headline text-5xl font-bold tracking-tighter text-on-background">Rankings</h1><span class="badge-visibility hidden text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" data-badge="rankings"></span></div>
+        <div class="flex items-center gap-4 flex-wrap">
+          <h1 class="font-headline text-5xl font-bold tracking-tighter text-on-background">Rankings</h1>
+          <span class="badge-visibility hidden text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" data-badge="rankings"></span>
+        </div>
         <div class="absolute -top-10 -right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
       </header>
 
@@ -89,44 +85,45 @@
       </section>
 
       <section class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end" id="scoreboardPodium">
-        <article class="podium-card podium-card-silver md:col-span-3 bg-surface-container-lowest p-6 shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex flex-col items-center text-center space-y-4" data-rank="2">
+        <article class="podium-card md:col-span-3 bg-surface-container-lowest p-6 shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex flex-col items-center text-center space-y-4" data-rank="2">
           <div class="relative">
-            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center podium-avatar podium-avatar-silver">
-              <span class="material-symbols-outlined text-slate-500">person</span>
+            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
+              <span class="material-symbols-outlined text-slate-400">person</span>
             </div>
-            <div class="absolute -bottom-2 -right-2 bg-slate-400 text-white w-8 h-8 rounded-full flex items-center justify-center font-headline font-bold border-4 border-surface-container-lowest podium-badge podium-badge-silver">2</div>
+            <div class="absolute -bottom-2 -right-2 bg-slate-400 text-white w-8 h-8 rounded-full flex items-center justify-center font-headline font-bold border-4 border-surface-container-lowest">2</div>
           </div>
           <div>
             <h4 class="font-headline font-bold text-lg" data-field="display_name">-</h4>
-            <p class="text-[10px] tracking-widest text-outline font-bold" data-field="score">0 PTS</p>
+            <p class="text-[10px] tracking-widest text-outline font-bold" data-field="score">0 Point</p>
           </div>
         </article>
-        <article class="podium-card podium-card-gold md:col-span-6 bg-surface-container-lowest p-8 shadow-[0_20px_40px_rgba(53,37,205,0.08)] flex flex-col items-center text-center space-y-6 relative overflow-hidden" data-rank="1">
-          <div class="absolute top-0 left-0 w-full h-1 podium-topline-gold"></div>
+        <article class="podium-card md:col-span-6 bg-surface-container-lowest p-8 shadow-[0_20px_40px_rgba(53,37,205,0.08)] flex flex-col items-center text-center space-y-6 relative overflow-hidden" data-rank="1">
+          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-container"></div>
           <div class="relative">
-            <div class="w-24 h-24 rounded-full bg-amber-50 flex items-center justify-center podium-avatar podium-avatar-gold">
-              <span class="material-symbols-outlined text-amber-500 text-4xl">military_tech</span>
+            <div class="w-24 h-24 rounded-full bg-indigo-50 flex items-center justify-center">
+              <span class="material-symbols-outlined text-indigo-500 text-4xl">military_tech</span>
             </div>
-            <div class="absolute -bottom-3 -right-3 bg-amber-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-headline font-bold text-xl border-4 border-surface-container-lowest podium-badge podium-badge-gold">1</div>
+            <div class="absolute -bottom-3 -right-3 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center font-headline font-bold text-xl border-4 border-surface-container-lowest">1</div>
           </div>
           <div>
             <h4 class="font-headline font-bold text-2xl tracking-tight" data-field="display_name">-</h4>
-            <p class="text-xs tracking-[0.2em] text-primary font-bold" data-field="score">0 PTS</p>
+            <p class="text-xs tracking-[0.2em] text-primary font-bold" data-field="score">0 Point</p>
           </div>
           <div class="flex gap-4 flex-wrap justify-center">
+            <span class="text-[10px] px-3 py-1 bg-primary/10 text-primary rounded-full" data-field="username">@-</span>
             <span class="text-[10px] px-3 py-1 bg-secondary/10 text-secondary rounded-full" data-field="solved_count">0 solves</span>
           </div>
         </article>
-        <article class="podium-card podium-card-bronze md:col-span-3 bg-surface-container-lowest p-6 shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex flex-col items-center text-center space-y-4" data-rank="3">
+        <article class="podium-card md:col-span-3 bg-surface-container-lowest p-6 shadow-[0_20px_40px_rgba(53,37,205,0.04)] flex flex-col items-center text-center space-y-4" data-rank="3">
           <div class="relative">
-            <div class="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center podium-avatar podium-avatar-bronze">
-              <span class="material-symbols-outlined text-orange-500">person</span>
+            <div class="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center">
+              <span class="material-symbols-outlined text-amber-500">person</span>
             </div>
-            <div class="absolute -bottom-2 -right-2 bg-orange-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-headline font-bold border-4 border-surface-container-lowest podium-badge podium-badge-bronze">3</div>
+            <div class="absolute -bottom-2 -right-2 bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-headline font-bold border-4 border-surface-container-lowest">3</div>
           </div>
           <div>
             <h4 class="font-headline font-bold text-lg" data-field="display_name">-</h4>
-            <p class="text-[10px] tracking-widest text-outline font-bold" data-field="score">0 PTS</p>
+            <p class="text-[10px] tracking-widest text-outline font-bold" data-field="score">0 Point</p>
           </div>
         </article>
       </section>
@@ -155,60 +152,10 @@
     </div>
   </main>
 
-  <script src="/static/js/app-core.js?v=1776019819"></script>
-  <script src="/static/js/app-auth.js?v=1776019819"></script>
-  <script src="/static/js/app-scoreboard.js?v=1776019819"></script>
-  <script src="/static/js/app-router.js?v=1776019819"></script>
-  <script src="/static/js/app-main.js?v=1776019819"></script>
-
-  <div class="password-modal hidden" id="passwordChangeModal" aria-hidden="true">
-    <div class="password-modal-backdrop" data-action="close-password-modal"></div>
-    <div class="password-modal-dialog">
-      <button class="password-modal-close" type="button" data-action="close-password-modal" aria-label="Close">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-      <h3 class="font-headline text-lg font-bold tracking-tight text-on-background mb-6">비밀번호 변경</h3>
-      <form id="passwordChangeForm" class="space-y-5" novalidate>
-        <div class="space-y-1">
-          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">현재 비밀번호</label>
-          <div class="password-input-wrap">
-            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcCurrentPassword" type="password" autocomplete="current-password" required />
-            <button class="password-eye-btn" type="button" data-toggle-password="pcCurrentPassword" aria-label="비밀번호 보기 전환">
-              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
-            </button>
-          </div>
-          <div id="pcCurrentCapsMessage" class="capslock-message"></div>
-        </div>
-        <div class="space-y-1">
-          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호</label>
-          <div class="password-input-wrap">
-            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcNewPassword" type="password" autocomplete="new-password" required />
-            <button class="password-eye-btn" type="button" data-toggle-password="pcNewPassword" aria-label="비밀번호 보기 전환">
-              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
-            </button>
-          </div>
-          <div id="pcNewCapsMessage" class="capslock-message"></div>
-          <div class="password-strength" aria-live="polite">
-            <div class="password-strength-bar"><div id="pcStrengthFill" class="password-strength-fill"></div></div>
-            <div id="pcStrengthText" class="password-strength-text">강도: -</div>
-          </div>
-          <p class="text-[10px] text-slate-400 mt-1">8자+</p>
-        </div>
-        <div class="space-y-1">
-          <label class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold">새 비밀번호 확인</label>
-          <div class="password-input-wrap">
-            <input class="w-full bg-surface-container-low border-b-2 border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 pr-10 text-sm" id="pcConfirmPassword" type="password" autocomplete="new-password" required />
-            <button class="password-eye-btn" type="button" data-toggle-password="pcConfirmPassword" aria-label="비밀번호 보기 전환">
-              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
-            </button>
-          </div>
-          <div id="pcConfirmCapsMessage" class="capslock-message"></div>
-        </div>
-        <div id="pcMessage" class="text-sm min-h-[18px]"></div>
-        <button class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-3 font-bold tracking-[0.15em] text-xs hover:shadow-[0_8px_20px_rgba(53,37,205,0.2)] active:scale-95 transition-all" type="submit">비밀번호 변경</button>
-      </form>
-    </div>
-  </div>
-
+  <script src="/static/js/app-core.js"></script>
+  <script src="/static/js/app-auth.js"></script>
+  <script src="/static/js/app-scoreboard.js"></script>
+  <script src="/static/js/app-router.js"></script>
+  <script src="/static/js/app-main.js"></script>
 </body>
 </html>

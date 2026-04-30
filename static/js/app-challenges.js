@@ -1,128 +1,14 @@
 (() => {
   const { dom, state, log, safeJson, fetchWithTimeout, normalizeCat, formatBytes, escapeHtml, escapeAttr, buildConnectHint, normalizeInstanceUrl } = window.HEXACTF;
 
-  let visibilityState = { visible: true, opens_at: null, server_time: null };
-  let countdownInterval = null;
-
-  async function fetchVisibility() {
-    try {
-      const res = await fetch('/api/visibility', { cache: 'no-store' });
-      return await res.json();
-    } catch { return visibilityState; }
-  }
-
-  function formatCountdown(ms) {
-    if (ms <= 0) return '00:00:00';
-    const h = Math.floor(ms / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    const s = Math.floor((ms % 60000) / 1000);
-    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-  }
-
-  function formatKstFromIso(isoStr) {
-    if (!isoStr) return '';
-    try {
-      return new Intl.DateTimeFormat('ko-KR', {
-        timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', hour12: false
-      }).format(new Date(isoStr));
-    } catch { return isoStr; }
-  }
-
-  function showClosedOverlay(opensAt, closesAt) {
-    const overlay = document.getElementById('challengesClosedOverlay');
-    const contentWrap = document.getElementById('challengesContentWrap');
-    const titleEl = document.getElementById('closedMessageTitle');
-    const subEl = document.getElementById('closedMessageSub');
-    const countdownWrap = document.getElementById('countdownWrap');
-    const countdownTimer = document.getElementById('countdownTimer');
-    const countdownTarget = document.getElementById('countdownTargetTime');
-
-    if (overlay) overlay.classList.remove('hidden');
-    if (contentWrap) contentWrap.classList.add('hidden');
-
-    // Check if CTF has ended (close time has passed)
-    var hasEnded = false;
-    if (closesAt) {
-      var closeMs = Date.parse(closesAt);
-      if (Number.isFinite(closeMs) && closeMs <= Date.now()) {
-        hasEnded = true;
-      }
-    }
-
-    if (hasEnded) {
-      // CTF ended - show completion message
-      if (titleEl) titleEl.textContent = 'HackerLogin 30\uAE30 \uC120\uBC1C CTF\uAC00 \uC885\uB8CC \uB418\uC5C8\uC2B5\uB2C8\uB2E4';
-      if (subEl) subEl.textContent = '\uACE0\uC0DD\uD558\uC168\uC2B5\uB2C8\uB2E4 :)';
-      if (countdownWrap) countdownWrap.classList.add('hidden');
-      stopCountdown();
-    } else if (opensAt) {
-      // Not yet opened - show countdown
-      if (titleEl) titleEl.textContent = 'CTF \uBB38\uC81C\uAC00 \uC544\uC9C1 \uACF5\uAC1C\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4';
-      if (subEl) subEl.textContent = '';
-      if (countdownWrap) countdownWrap.classList.remove('hidden');
-      if (countdownTarget) countdownTarget.textContent = formatKstFromIso(opensAt) + ' \uACF5\uAC1C \uC608\uC815';
-      startCountdown(opensAt);
-    } else {
-      // Generic closed
-      if (titleEl) titleEl.textContent = 'CTF \uBB38\uC81C\uB97C \uC544\uC9C1 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4';
-      if (subEl) subEl.textContent = '';
-      if (countdownWrap) countdownWrap.classList.add('hidden');
-      stopCountdown();
-    }
-  }
-
-  function hideClosedOverlay() {
-    const overlay = document.getElementById('challengesClosedOverlay');
-    const contentWrap = document.getElementById('challengesContentWrap');
-    if (overlay) overlay.classList.add('hidden');
-    if (contentWrap) contentWrap.classList.remove('hidden');
-    stopCountdown();
-  }
-
-  function startCountdown(opensAtIso) {
-    stopCountdown();
-    const targetMs = Date.parse(opensAtIso);
-    if (!Number.isFinite(targetMs)) return;
-    function tick() {
-      const remaining = targetMs - Date.now();
-      const el = document.getElementById('countdownTimer');
-      if (el) el.textContent = formatCountdown(remaining);
-      if (remaining <= 0) { stopCountdown(); checkVisibilityAndRender(); }
-    }
-    tick();
-    countdownInterval = setInterval(tick, 1000);
-  }
-
-  function stopCountdown() {
-    if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-  }
-
-  async function checkVisibilityAndRender() {
-    const isAdmin = state.auth?.user?.role === 'admin';
-    const vis = await fetchVisibility();
-    visibilityState = vis;
-    if (vis.challenges_visible || isAdmin) {
-      hideClosedOverlay();
-      const arr = await loadChallenges();
-      state.allChallenges = arr;
-      render();
-      loadInstances();
-    } else {
-      showClosedOverlay(vis.challenges_opens_at, vis.challenges_closes_at);
-    }
-  }
-
-
   function categoryLabel(cat) {
     switch (cat) {
       case "pwn": return "PWNABLE";
       case "rev": return "REVERSING";
       case "crypto": return "CRYPTO";
-      case "web": return "WEB";
       case "forensic": return "FORENSIC";
-      default:
-        return String(cat || "misc").replaceAll("_", " ").toUpperCase();
+      case "web": return "WEB";
+      default: return "MISC";
     }
   }
 
@@ -132,7 +18,7 @@
       case "pwn": return "terminal";
       case "rev": return "settings_backup_restore";
       case "crypto": return "lock";
-      case "forensic": return "search";
+      case "forensic": return "search_activity";
       default: return "category";
     }
   }
@@ -148,6 +34,168 @@
     }
   }
 
+  function visibleCategories(ch) {
+    const rawTags = ch.tags;
+    if (Array.isArray(rawTags) && rawTags.length > 0) {
+      return rawTags.slice(0, 2).map(t => normalizeCat(t));
+    }
+    return [normalizeCat(ch.type ?? ch.category ?? "misc")];
+  }
+
+  function markdownInline(text) {
+    return String(text || "")
+      .replace(/`([^`]+)`/g, '<code class="rounded bg-slate-100 px-1.5 py-0.5 text-[0.92em] text-slate-700">$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, "$1<em>$2</em>");
+  }
+
+  function renderMarkdown(text) {
+    const safe = escapeHtml(String(text || "").replace(/\r/g, "")).trim();
+    if (!safe) return '<p class="text-sm text-on-surface-variant">No description.</p>';
+
+    const lines = safe.split("\n");
+    const html = [];
+    let paragraph = [];
+    let listType = null;
+    let listItems = [];
+
+    function flushParagraph() {
+      if (!paragraph.length) return;
+      html.push(`<p class="my-4 text-sm leading-relaxed text-on-surface-variant">${markdownInline(paragraph.join("<br>"))}</p>`);
+      paragraph = [];
+    }
+
+    function flushList() {
+      if (!listType || !listItems.length) return;
+      const tag = listType === "ol" ? "ol" : "ul";
+      const listClass = listType === "ol"
+        ? "list-decimal pl-6 space-y-2 my-4 text-sm leading-relaxed text-on-surface"
+        : "list-disc pl-6 space-y-2 my-4 text-sm leading-relaxed text-on-surface";
+      html.push(`<${tag} class="${listClass}">${listItems.map(item => `<li class="mb-1">${markdownInline(item)}</li>`).join("")}</${tag}>`);
+      listType = null;
+      listItems = [];
+    }
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+
+      if (!line) {
+        flushParagraph();
+        flushList();
+        continue;
+      }
+
+      const heading3 = line.match(/^###\s+(.+)$/);
+      if (heading3) {
+        flushParagraph();
+        flushList();
+        html.push(`<h4 class="mt-6 mb-3 text-base font-bold text-on-surface">${markdownInline(heading3[1])}</h4>`);
+        continue;
+      }
+
+      const heading2 = line.match(/^##\s+(.+)$/);
+      if (heading2) {
+        flushParagraph();
+        flushList();
+        html.push(`<h3 class="mt-6 mb-3 text-lg font-bold text-on-surface">${markdownInline(heading2[1])}</h3>`);
+        continue;
+      }
+
+      const heading1 = line.match(/^#\s+(.+)$/);
+      if (heading1) {
+        flushParagraph();
+        flushList();
+        html.push(`<h2 class="mt-6 mb-3 text-xl font-bold text-on-surface">${markdownInline(heading1[1])}</h2>`);
+        continue;
+      }
+
+      const unordered = line.match(/^[-*]\s+(.+)$/);
+      if (unordered) {
+        flushParagraph();
+        if (listType !== "ul") {
+          flushList();
+          listType = "ul";
+        }
+        listItems.push(unordered[1]);
+        continue;
+      }
+
+      const ordered = line.match(/^\d+\.\s+(.+)$/);
+      if (ordered) {
+        flushParagraph();
+        if (listType !== "ol") {
+          flushList();
+          listType = "ol";
+        }
+        listItems.push(ordered[1]);
+        continue;
+      }
+
+      flushList();
+      paragraph.push(line);
+    }
+
+    flushParagraph();
+    flushList();
+    return html.join("");
+  }
+
+  function markdownPreview(text) {
+    return String(text || "")
+      .replace(/^#+\s+.+$/gm, "")
+      .replace(/\*\*/g, "")
+      .replace(/`/g, "")
+      .replace(/\*/g, "")
+      .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+      .replace(/\n+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function renderCategoryFilters(chs) {
+    const topFilters = document.getElementById("filters");
+    const sidebar = document.getElementById("sidebarCategories");
+    const seen = new Set(["all"]);
+    chs.forEach(c => {
+      visibleCategories(c).forEach(cat => {
+        seen.add(cat);
+      });
+    });
+    const order = ["all", "web", "pwn", "rev", "crypto", "forensic", "misc"];
+    const cats = order.filter(x => seen.has(x));
+
+    if (topFilters) {
+      topFilters.innerHTML = cats.map(cat => {
+        const tone = categoryTone(cat);
+        const label = cat === "all" ? "ALL" : categoryLabel(cat);
+        const active = state.activeCat === cat;
+        const base = "filter inline-flex items-center px-4 py-2 text-[11px] font-black tracking-[0.18em] uppercase transition-colors rounded-none";
+        if (cat === "all") {
+          const allClass = active
+            ? "border-2 border-indigo-500 text-indigo-700 bg-white"
+            : "border border-slate-200 text-slate-500 bg-white hover:border-indigo-300 hover:text-indigo-600";
+          return `<button class="${base} ${allClass}" data-cat="${cat}" type="button">${label}</button>`;
+        }
+        const chipClass = active
+          ? `${tone.chip} ring-2 ring-offset-1 ring-indigo-500`
+          : `${tone.chip} hover:opacity-100`;
+        return `<button class="${base} ${chipClass}" data-cat="${cat}" type="button">${label}</button>`;
+      }).join("");
+    }
+
+    if (sidebar) {
+      const icons = { all: "apps", web: "language", pwn: "terminal", rev: "settings_backup_restore", crypto: "lock", forensic: "search_activity", misc: "category" };
+      sidebar.innerHTML = cats.map(cat => {
+        const label = cat === "all" ? "ALL" : categoryLabel(cat);
+        const active = state.activeCat === cat;
+        const icon = icons[cat] || "category";
+        const activeClass = active ? "bg-indigo-50 text-indigo-700 font-bold" : "text-slate-500 hover:bg-slate-100 hover:text-slate-700";
+        return `<button class="sidebar-cat-btn flex items-center gap-3 py-2 px-4 rounded text-xs uppercase tracking-widest transition-colors ${activeClass}" data-cat="${cat}" type="button"><span class="material-symbols-outlined text-[16px]">${icon}</span>${label}</button>`;
+      }).join("");
+    }
+  }
+
+
   function detailDifficulty(ch) {
     return String(ch.difficulty || "Beginner").toUpperCase();
   }
@@ -157,71 +205,16 @@
     return Array.isArray(solved) && solved.includes(key);
   }
 
+  function updateProgress() {
+    if (!dom.challengeProgressCount || !dom.challengeProgressBar) return;
+    const total = Array.isArray(state.allChallenges) ? state.allChallenges.length : 0;
+    const solved = Array.isArray(state.auth?.user?.solved_problems)
+      ? state.auth.user.solved_problems.filter(key => state.allChallenges.some(ch => ch.key === key)).length
+      : 0;
+    const ratio = total > 0 ? Math.min(100, Math.max(0, (solved / total) * 100)) : 0;
 
-  function getCategoryOptions() {
-    const seen = new Set();
-    const order = ["web", "pwn", "rev", "crypto"];
-    const categories = [];
-
-    state.allChallenges.forEach(ch => {
-      const cat = normalizeCat(ch.type ?? ch.category);
-      if (!seen.has(cat)) {
-        seen.add(cat);
-        categories.push(cat);
-      }
-    });
-
-    categories.sort((a, b) => {
-      const ai = order.indexOf(a);
-      const bi = order.indexOf(b);
-      if (ai !== -1 || bi !== -1) {
-        if (ai === -1) return 1;
-        if (bi === -1) return -1;
-        return ai - bi;
-      }
-      return a.localeCompare(b);
-    });
-
-    return categories;
-  }
-
-  function renderProgress() {
-    const total = state.allChallenges.length;
-    const solved = state.allChallenges.filter(ch => isSolved(ch.key)).length;
-    const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
-
-    if (dom.challengeProgressLabel) dom.challengeProgressLabel.textContent = "문제 풀이 현황";
-    if (dom.challengeProgressValue) dom.challengeProgressValue.textContent = `${solved}/${total}`;
-    if (dom.challengeProgressBar) dom.challengeProgressBar.style.width = `${pct}%`;
-  }
-
-  function renderCategoryControls() {
-    const categories = getCategoryOptions();
-
-    if (dom.filtersEl) {
-      dom.filtersEl.innerHTML = [
-        `<button class="filter ${state.activeCat === "all" ? "active" : ""} px-4 py-1.5 rounded-full border border-slate-300 text-slate-500 text-[11px] font-bold uppercase tracking-wider" data-cat="all">ALL</button>`,
-        ...categories.map(cat => `<button class="filter ${state.activeCat === cat ? "active" : ""} px-4 py-1.5 rounded-full border border-slate-300 text-slate-500 text-[11px] font-bold uppercase tracking-wider" data-cat="${escapeAttr(cat)}">${escapeHtml(categoryLabel(cat))}</button>`)
-      ].join("");
-    }
-
-    if (dom.sidebarCategoryNav) {
-      dom.sidebarCategoryNav.innerHTML = categories.map(cat => `
-        <button class="side-link category-side-link ${state.activeCat === cat ? "active" : ""} flex items-center gap-3 py-2 px-4 text-slate-600 hover:bg-slate-100 transition-transform duration-200 hover:translate-x-1 rounded w-full text-left" type="button" data-cat="${escapeAttr(cat)}">
-          <span class="material-symbols-outlined text-[20px]">${escapeHtml(categoryIcon(cat))}</span>
-          <span class="side-link-label uppercase text-xs tracking-widest">${escapeHtml(categoryLabel(cat))}</span>
-        </button>
-      `).join("");
-    }
-  }
-
-  function setActiveCategory(cat, { scrollToGrid = false } = {}) {
-    state.activeCat = cat || "all";
-    renderCategoryControls();
-    render();
-    if (scrollToGrid && dom.grid) {
-      dom.grid.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    dom.challengeProgressCount.textContent = `${solved}/${total}`;
+    dom.challengeProgressBar.style.width = `${ratio}%`;
   }
 
   function canOpenInstance(ch, instance) {
@@ -238,10 +231,14 @@
   }
 
   function renderCard(ch) {
-    const cat = normalizeCat(ch.type ?? ch.category);
-    const icon = categoryIcon(cat);
-    const catLabel = categoryLabel(cat);
-    const tone = categoryTone(cat);
+    const cats = visibleCategories(ch);
+    const primary = cats[0];
+    const icon = categoryIcon(primary);
+    const tone = categoryTone(primary);
+    const chips = cats.map(cat => {
+      const t = categoryTone(cat);
+      return `<span class="inline-flex items-center px-3 py-1 text-[10px] font-bold tracking-widest uppercase ${t.chip}">${categoryLabel(cat)}</span>`;
+    }).join("");
     const solved = isSolved(ch.key);
     const solvedCardClass = solved ? "bg-emerald-50/60 border border-emerald-200/80" : "bg-surface-container-lowest";
     const solvedRibbon = solved
@@ -251,20 +248,22 @@
     const runningClass = state.runningMap.has(ch.key) ? "running-instance-card" : "";
 
     return `
-      <article class="relative cursor-pointer ${solvedCardClass} shadow-[0_20px_40px_rgba(53,37,205,0.04)] p-6 flex flex-col gap-5 min-h-[280px] hover:-translate-y-1 transition-transform ${runningClass}" data-key="${escapeHtml(ch.key)}" data-cat="${cat}" id="challenge-${escapeHtml(ch.key)}">
+      <article class="relative cursor-pointer ${solvedCardClass} shadow-[0_20px_40px_rgba(53,37,205,0.04)] p-6 flex flex-col gap-5 min-h-[280px] hover:-translate-y-1 transition-transform ${runningClass}" data-key="${escapeHtml(ch.key)}" data-cat="${primary}" id="challenge-${escapeHtml(ch.key)}">
         ${solvedRibbon}
         <div class="flex items-start justify-between gap-4">
-          <span class="inline-flex items-center px-3 py-1 text-[10px] font-bold tracking-widest uppercase ${tone.chip}">${catLabel}</span>
-          <span class="font-headline font-black italic text-xl ${tone.score}">${Number(ch.score || 0)} PTS</span>
+          <div class="flex flex-wrap gap-1">
+            ${chips}
+          </div>
+          <span class="font-headline font-black italic text-xl ${tone.score}">${Number(ch.score || 0)} Point</span>
         </div>
         ${runningBadge(ch)}
         <div class="space-y-3 flex-1">
           <div class="flex items-center gap-3 text-slate-400 text-[10px] font-bold uppercase tracking-[0.18em]">
             <span class="material-symbols-outlined text-sm p-1 rounded-sm ${tone.icon}">${icon}</span>
-            <span>${detailDifficulty(ch)}</span>
+            <span>${ch.author ? `출제자: ${escapeHtml(ch.author)}` : detailDifficulty(ch)}</span>
           </div>
           <h3 class="font-headline text-[1.45rem] font-bold tracking-tight text-on-surface leading-none">${escapeHtml(ch.title || ch.key)}</h3>
-          <p class="text-sm text-on-surface-variant line-clamp-3 leading-relaxed">${escapeHtml(ch.desc || ch.description || "No description.")}</p>
+          <p class="text-sm text-on-surface-variant line-clamp-3 leading-relaxed">${escapeHtml(markdownPreview(ch.desc || ch.description || "No description."))}</p>
         </div>
         <div class="flex items-end justify-between pt-4 border-t border-surface-container-low text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
           <div class="flex flex-col gap-1">
@@ -280,27 +279,28 @@
     `;
   }
 
-  let _renderRaf = null;
   function render() {
     if (!dom.grid) return;
-    if (_renderRaf) cancelAnimationFrame(_renderRaf);
-    _renderRaf = requestAnimationFrame(_doRender);
-  }
-
-  function _doRender() {
-    _renderRaf = null;
     const filtered = state.allChallenges.filter(ch => {
-      const cat = normalizeCat(ch.type ?? ch.category);
-      const okCat = state.activeCat === "all" ? true : cat === state.activeCat;
+      const cats = visibleCategories(ch);
+      const okCat = state.activeCat === "all" ? true : cats.includes(state.activeCat);
       const q = state.activeQuery.trim().toLowerCase();
       const okQ = !q ? true : (String(ch.key).toLowerCase().includes(q) || String(ch.title || "").toLowerCase().includes(q));
       return okCat && okQ;
+    }).sort((a, b) => {
+      if (state.activeCat !== "all") return 0;
+      const scoreDiff = Number(a.score || 0) - Number(b.score || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+      return String(a.title || a.key).localeCompare(String(b.title || b.key));
     });
 
-    renderProgress();
-
     if (!filtered.length) {
-      dom.grid.innerHTML = '<div class="col-span-full bg-surface-container-lowest rounded-lg p-12 text-center shadow-[0_20px_40px_rgba(53,37,205,0.04)]"><div class="font-headline text-2xl font-bold tracking-tight text-slate-700">No matching challenges</div><p class="mt-3 text-sm text-slate-500">Adjust the current filters or search query.</p></div>';
+      dom.grid.innerHTML = `
+        <div class="col-span-full bg-surface-container-lowest rounded-lg p-12 text-center shadow-[0_20px_40px_rgba(53,37,205,0.04)]">
+          <div class="font-headline text-2xl font-bold tracking-tight text-slate-700">No matching challenges</div>
+          <p class="mt-3 text-sm text-slate-500">Adjust the current filters or search query.</p>
+        </div>
+      `;
       return;
     }
 
@@ -348,12 +348,20 @@
     state.currentDetailKey = ch.key;
     state.detailChallenge = ch;
 
-    if (dom.detailCategory) dom.detailCategory.textContent = categoryLabel(normalizeCat(ch.type ?? ch.category));
-    if (dom.detailDifficulty) dom.detailDifficulty.textContent = detailDifficulty(ch);
-    if (dom.detailPoints) dom.detailPoints.textContent = `${Number(ch.score || 0)} PTS`;
+    const cats = visibleCategories(ch);
+    if (dom.detailCategory) {
+      if (cats.length > 1) {
+        dom.detailCategory.textContent = cats.map(c => categoryLabel(c)).join(" / ");
+      } else {
+        dom.detailCategory.textContent = categoryLabel(cats[0] || "misc");
+      }
+    }
+    if (dom.detailDifficulty) dom.detailDifficulty.textContent = ch.author ? `출제자: ${escapeHtml(ch.author)}` : detailDifficulty(ch);
+    if (dom.detailPoints) dom.detailPoints.textContent = `${Number(ch.score || 0)} Point`;
     if (dom.detailTitle) dom.detailTitle.textContent = ch.title || ch.key;
     if (dom.detailSolves) dom.detailSolves.textContent = `${Number(ch.solve_count || ch.solves || 0)} Solves`;
-    if (dom.detailDescription) dom.detailDescription.textContent = ch.briefing || ch.desc || ch.description || "No description.";
+    const detailMarkdown = ch.desc || ch.description || ch.briefing || "No description.";
+    if (dom.detailDescription) dom.detailDescription.innerHTML = renderMarkdown(detailMarkdown);
 
     if (dom.detailDownloadsWrap && dom.detailDownloads) {
       const files = Array.isArray(ch.downloads) ? ch.downloads : [];
@@ -382,9 +390,6 @@
       dom.challengeDetailModal.classList.remove("hidden");
       dom.challengeDetailModal.setAttribute("aria-hidden", "false");
       document.body.classList.add("overflow-hidden");
-    }
-    if (dom.detailContent) {
-      dom.detailContent.scrollTop = 0;
     }
 
     setDetailFlagMessage("", "");
@@ -463,6 +468,7 @@
         if (dom.detailSolves) dom.detailSolves.textContent = `${Number(state.detailChallenge.solve_count || 0)} Solves`;
       }
       render();
+      if (window.HEXACTF?.updateProgress) window.HEXACTF.updateProgress();
       await loadInstances();
     } else {
       setDetailFlagMessage("오답입니다.", "error");
@@ -497,6 +503,11 @@
       });
 
       log(`Loaded challenges from API: ${arr.length}`);
+      // Persist and render dynamic UI elements
+      state.allChallenges = arr;
+      render();
+      renderCategoryFilters(arr);
+      if (window.HEXACTF?.updateProgress) window.HEXACTF.updateProgress();
       return arr;
     } catch (e) {
       const reason = e.name === "AbortError" ? "timeout" : e.message;
@@ -548,6 +559,10 @@
     });
 
     const data = await safeJson(res);
+    if (res.status === 429) {
+      alert("생성 가능한 인스턴스 수를 초과했습니다\n사용 중인 인스턴스를 종료한 뒤 다시 시도해 주세요");
+      throw new Error(data.detail || data.error || "Start failed");
+    }
     if (!res.ok || data.status !== "ok") {
       throw new Error(data.detail || data.error || "Start failed");
     }
@@ -691,17 +706,32 @@
     dom.filtersEl.addEventListener("click", (e) => {
       const b = e.target.closest("button.filter");
       if (!b) return;
-      setActiveCategory(b.dataset.cat || "all");
+      state.activeCat = b.dataset.cat;
+      render();
+      renderCategoryFilters(state.allChallenges);
     });
   }
 
-  if (dom.sidebarCategoryNav) {
-    dom.sidebarCategoryNav.addEventListener("click", (e) => {
-      const b = e.target.closest("button[data-cat]");
+  const sidebarCategories = document.getElementById("sidebarCategories");
+  if (sidebarCategories) {
+    sidebarCategories.addEventListener("click", (e) => {
+      const b = e.target.closest("button.sidebar-cat-btn");
       if (!b) return;
-      setActiveCategory(b.dataset.cat || "all", { scrollToGrid: true });
+      state.activeCat = b.dataset.cat;
+      render();
+      renderCategoryFilters(state.allChallenges);
     });
   }
+
+  document.querySelectorAll("[data-scroll-cat]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetCat = btn.getAttribute("data-scroll-cat");
+      const target = document.querySelector(`[data-cat="${targetCat}"]`);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  });
 
   if (dom.searchInput) {
     dom.searchInput.addEventListener("input", (e) => {
@@ -718,12 +748,8 @@
     maybeOpenFromPath();
   });
 
-  state.allChallenges = [];
-  renderCategoryControls();
-  renderProgress();
-  checkVisibilityAndRender();
-
   window.HEXACTF = Object.assign(window.HEXACTF || {}, {
+    updateProgress,
     challenges: {
       loadChallenges,
       loadInstances,

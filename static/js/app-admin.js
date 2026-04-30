@@ -84,6 +84,7 @@
         '<button class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-sm text-xs font-bold hover:bg-amber-100 transition-all" data-action="reset-password">Reset Password</button>' +
         '<button class="bg-surface-container-high px-3 py-1.5 rounded-sm text-xs font-bold hover:bg-primary hover:text-white transition-all" data-action="toggle-role" data-role="' + toggleRole + '">' + toggleLabel + '</button>' +
         '<button class="bg-red-50 text-red-600 px-3 py-1.5 rounded-sm text-xs font-bold hover:bg-red-100 transition-all" data-action="delete"' + (isSelf ? " disabled" : "") + '>Delete</button>' +
+        '<button class="bg-orange-50 text-orange-700 px-3 py-1.5 rounded-sm text-xs font-bold hover:bg-orange-100 transition-all" data-action="reclaim-user"' + (activeInstances > 0 ? "" : " disabled") + '>Reclaim</button>' +
         '</div></td></tr>';
     }).join("");
   }
@@ -383,6 +384,21 @@
           setAdminMessage("Deleting user...", "");
           await deleteUser(username);
           await refreshUsers();
+        } else if (action === "reclaim-user") {
+          const ok = await confirmAdminAction("Reclaim all instances for " + username + "? This cannot be undone.");
+          if (!ok) return;
+          try {
+            setAdminMessage("Reclaiming instances for " + username + "...", "");
+            const result = await reclaimUser(username);
+            const reclaimed = Array.isArray(result.reclaimed) ? result.reclaimed.length : 0;
+            log("Reclaim user " + username + ": " + reclaimed + " instances reclaimed");
+            setAdminMessage("Reclaimed " + reclaimed + " instances for " + username, "ok");
+            await refreshAdminInstances();
+          } catch (err) {
+            setAdminMessage(err.message || "Failed to reclaim instances", "error");
+            log("Reclaim user failed: " + err.message);
+          }
+          await refreshUsers();
         } else if (action === "approve-user") {
           setAdminMessage("Approving user...", "");
           await approveUser(username);
@@ -559,10 +575,90 @@
     });
   }
 
+  // === Admin Instance Management ===
+
+  async function fetchAdminInstances() {
+    const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
+    const res = await fetch("/api/admin/instances", { headers });
+    const data = await safeJson(res);
+    if (!res.ok || data.status !== "ok") throw new Error(data.detail || data.error || "Failed to load admin instances");
+    return Array.isArray(data.instances) ? data.instances : [];
+  }
+
+  async function reclaimAllInstances() {
+    const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
+    const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
+    const res = await fetch("/api/admin/instances/reclaim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(csrf ? { "X-CSRF-Token": csrf } : {}), ...headers },
+      body: JSON.stringify({})
+    });
+    const data = await safeJson(res);
+    if (!res.ok || data.status !== "ok") throw new Error(data.detail || data.error || "Failed to reclaim instances");
+    return data;
+  }
+
+  async function reclaimUser(username) {
+    const headers = window.HEXACTF.authHeaders ? window.HEXACTF.authHeaders() : {};
+    const csrf = window.HEXACTF.getCsrfToken ? window.HEXACTF.getCsrfToken() : "";
+    const res = await fetch("/api/admin/instances/reclaim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(csrf ? { "X-CSRF-Token": csrf } : {}), ...headers },
+      body: JSON.stringify({ username: username })
+    });
+    const data = await safeJson(res);
+    if (!res.ok || data.status !== "ok") throw new Error(data.detail || data.error || "Failed to reclaim instances for user");
+    return data;
+  }
+
+  function renderAdminInstances(instances) {
+    const tbody = document.getElementById("adminInstancesBody");
+    if (!tbody) return;
+    if (!instances.length) {
+      tbody.innerHTML = '<tr><td class="px-6 py-8 text-slate-400 text-center" colspan="4">No running instances</td></tr>';
+      return;
+    }
+    // Deduplicate by instance_id + owner + problem
+    const seen = new Set();
+    const uniqueInstances = instances.filter(inst => {
+      if (!inst || typeof inst !== "object") return false;
+      const key = String(inst.instance_id || "") + "-" + String(inst.owner || "") + "-" + String(inst.problem || "");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    
+    tbody.innerHTML = uniqueInstances.map(inst => {
+      const owner = escapeHtml(String(inst.owner || inst.username || "-"));
+      const problem = escapeHtml(String(inst.problem || inst.challenge || "-"));
+      const status = escapeHtml(String(inst.status || "running"));
+      const created = escapeHtml(formatKstDateTime(inst.created_at));
+      return '<tr class="hover:bg-surface-container-low transition-colors duration-150">' +
+        '<td class="px-6 py-4 text-sm font-bold">' + owner + '</td>' +
+        '<td class="px-6 py-4 text-sm text-slate-600">' + problem + '</td>' +
+        '<td class="px-6 py-4"><span class="px-2 py-0.5 rounded-sm bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">' + status + '</span></td>' +
+        '<td class="px-6 py-4 text-sm text-slate-600">' + created + '</td>' +
+        '</tr>';
+    }).join("");
+  }
+
+  async function refreshAdminInstances() {
+    if (!isAdminUser()) return;
+    try {
+      const instances = await fetchAdminInstances();
+      renderAdminInstances(instances);
+    } catch (err) {
+      log("Admin instances load failed: " + err.message);
+      const tbody = document.getElementById("adminInstancesBody");
+      if (tbody) tbody.innerHTML = '<tr><td class="px-6 py-8 text-red-400 text-center" colspan="4">Failed to load instances</td></tr>';
+    }
+  }
+
   function onAuthChange() {
     renderAdminVisibility();
     if (isAdminUser()) {
       refreshSettings();
+      refreshAdminInstances();
       refreshUsers();
     } else if (dom.adminUserBody) {
       dom.adminUserBody.innerHTML = '<tr><td class="px-6 py-8 text-slate-400 text-center" colspan="7">Admin only</td></tr>';
@@ -574,6 +670,25 @@
   window.HEXACTF = Object.assign(window.HEXACTF || {}, {
     admin: { refreshUsers, onAuthChange }
   });
+
+  // Reclaim All Instances button handler
+  const reclaimAllBtn = document.getElementById("reclaimAllInstancesBtn");
+  if (reclaimAllBtn) {
+    reclaimAllBtn.addEventListener("click", async () => {
+      const ok = await confirmAdminAction("All instances will be reclaimed. This cannot be undone.");
+      if (!ok) return;
+      try {
+        setAdminMessage("Reclaiming all instances...", "");
+        await reclaimAllInstances();
+        setAdminMessage("All instances reclaimed", "ok");
+        await refreshAdminInstances();
+        await refreshUsers();
+      } catch (err) {
+        setAdminMessage(err.message || "Failed to reclaim instances", "error");
+        log("Reclaim failed: " + err.message);
+      }
+    });
+  }
 
   onAuthChange();
   console.log("[app-admin] Module loaded successfully");

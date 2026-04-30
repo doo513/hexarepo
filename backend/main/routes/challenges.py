@@ -4,24 +4,23 @@ import os
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 
-from ...auth import auth
-from ...auth.deps import get_current_user, get_optional_user, require_csrf
 from ...core import models
 from ...core.config import CHALLENGE_FILE
-from ..settings_service import is_challenges_visible
+
+
+def safe_join(base_dir: str, rel_path: str) -> str | None:
+    base_abs = os.path.abspath(base_dir)
+    target = os.path.abspath(os.path.join(base_abs, rel_path))
+    if os.path.commonpath([base_abs, target]) != base_abs:
+        return None
+    return target
+
 
 router = APIRouter()
 
 
-def _ensure_challenges_visible(request: Request) -> dict | None:
-    user = get_optional_user(request)
-    visible, info = is_challenges_visible(user)
-    if visible:
-        return user
-    raise HTTPException(
-        status_code=403,
-        detail=str(info.get("closed_message") or "CTF \uBB38\uC81C\uB97C \uC544\uC9C1 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4"),
-    )
+from ...auth import auth
+from ...auth.deps import get_current_user, require_csrf
 
 
 def _stop_owned_instance_after_solve(*, user: dict, problem_key: str) -> dict:
@@ -157,16 +156,12 @@ def normalize_downloads(challenge: dict) -> list[dict]:
         if not rel_path:
             continue
 
+        basename = os.path.basename(str(rel_path)).strip().lower()
+        if basename == ".gitkeep":
+            continue
+
         normalized.append({"path": rel_path, "label": label or os.path.basename(rel_path)})
     return normalized
-
-
-def safe_join(base_dir: str, rel_path: str) -> str | None:
-    base_abs = os.path.abspath(base_dir)
-    target = os.path.abspath(os.path.join(base_abs, rel_path))
-    if os.path.commonpath([base_abs, target]) != base_abs:
-        return None
-    return target
 
 
 def build_download_entries(problem_key: str, challenge: dict) -> list[dict]:
@@ -189,6 +184,42 @@ def build_download_entries(problem_key: str, challenge: dict) -> list[dict]:
             }
         )
     return entries
+
+
+def _strip_leading_markdown_title(text: str) -> str:
+    lines = str(text or "").splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and lines[0].lstrip().startswith("#"):
+        if lines[0].lstrip().startswith("# "):
+            lines.pop(0)
+            while lines and not lines[0].strip():
+                lines.pop(0)
+            break
+        elif lines[0].lstrip().startswith("## "):
+            lines.pop(0)
+            while lines and not lines[0].strip():
+                lines.pop(0)
+            break
+        else:
+            break
+    return "\n".join(lines).strip()
+
+
+def _load_description_markdown(challenge: dict) -> str:
+    base_dir = challenge.get("dir")
+    if not base_dir:
+        return ""
+
+    description_path = safe_join(str(base_dir), "Description.md")
+    if not description_path or not os.path.isfile(description_path):
+        return ""
+
+    try:
+        with open(description_path, "r", encoding="utf-8") as f:
+            return _strip_leading_markdown_title(f.read())
+    except OSError:
+        return ""
 
 
 def sanitize_challenge(problem_key: str, challenge: dict, solve_count: int = 0) -> dict:
@@ -214,24 +245,27 @@ def sanitize_challenge(problem_key: str, challenge: dict, solve_count: int = 0) 
         ch["desc"] = ch.get("description")
     if "desc" in ch and "description" not in ch:
         ch["description"] = ch.get("desc")
-    desc = ch.get("desc") or ch.get("description") or ""
+    desc = ch.get("desc") or ch.get("description") or _load_description_markdown(challenge) or ""
     if not desc:
         desc = "Challenge briefing unavailable."
+    desc = _strip_leading_markdown_title(desc)
     ch["desc"] = desc
-    ch["description"] = ch.get("description") or desc
+    ch["description"] = _strip_leading_markdown_title(ch.get("description") or desc)
     ch["briefing"] = (
         challenge.get("briefing")
         or challenge.get("mission")
         or desc
     )
+    ch["briefing"] = _strip_leading_markdown_title(ch["briefing"])
+    if "tags" not in ch:
+        ch["tags"] = []
     ch["instance_note"] = challenge.get("instance_note") or "Provisioning may take up to 30 seconds."
     ch["service_path"] = challenge.get("service_path") or challenge.get("endpoint") or "/"
     return ch
 
 
 @router.get("/api/challenges")
-def list_challenges(request: Request):
-    _ensure_challenges_visible(request)
+def list_challenges():
     try:
         challenges = load_challenges()
         if not isinstance(challenges, dict):
@@ -248,8 +282,7 @@ def list_challenges(request: Request):
 
 
 @router.get("/api/challenges/{problem_key}")
-def challenge_detail(problem_key: str, request: Request):
-    _ensure_challenges_visible(request)
+def challenge_detail(problem_key: str):
     try:
         challenges = load_challenges()
         solve_counts = auth.get_problem_solve_counts()
@@ -274,7 +307,6 @@ def challenge_detail(problem_key: str, request: Request):
 
 @router.get("/api/download/{problem_key}/{file_index}")
 def download(problem_key: str, file_index: int, request: Request):
-    _ensure_challenges_visible(request)
     get_current_user(request)
     challenges = load_challenges()
     challenge = challenges.get(problem_key)
@@ -336,7 +368,6 @@ def _resolve_flag(challenge: dict) -> str:
 @router.post("/submit")
 @router.post("/api/submit")
 def submit_flag(req: models.SubmitRequest, request: Request):
-    _ensure_challenges_visible(request)
     user = get_current_user(request)
     require_csrf(request)
 

@@ -57,6 +57,10 @@
   }
 
   function guardRoutes() {
+    const path = window.location.pathname || "";
+    if (path === "/login" || path === "/" || path === "/login") {
+      return;
+    }
     const user = getStoredUser();
     if (!user) {
       syncProtectedLinks();
